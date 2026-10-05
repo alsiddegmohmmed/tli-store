@@ -1,3 +1,12 @@
+export class RequestError extends Error {
+    constructor(
+        message: string,
+        public status: number,
+    ) {
+        super(message);
+    }
+}
+
 export async function requestJson<T>(
     url: string,
     options: RequestInit = {},
@@ -22,22 +31,27 @@ export async function requestJson<T>(
         throw new Error('تعذر الاتصال بالنظام. تحقق من الشبكة وحاول مرة أخرى.');
     }
     if (response.status === 401 || response.status === 419) {
-        throw new Error(
+        throw new RequestError(
             'انتهت الجلسة. سجّل الدخول مجددًا؛ السلة محفوظة في هذا المتصفح.',
+            response.status,
         );
     }
     if (response.status >= 500)
-        throw new Error('تعذر الاتصال بالنظام. حاول مرة أخرى.');
+        throw new RequestError(
+            'تعذر الاتصال بالنظام. حاول مرة أخرى.',
+            response.status,
+        );
     const data = await response.json().catch(() => {
         throw new Error('تعذر قراءة استجابة النظام. حاول مرة أخرى.');
     });
     if (!response.ok) {
         const message =
             Object.values(data.errors ?? {}).flat()[0] ?? data.message;
-        throw new Error(
+        throw new RequestError(
             typeof message === 'string'
                 ? message
                 : 'تعذر تنفيذ الطلب. راجع البيانات وحاول مرة أخرى.',
+            response.status,
         );
     }
     return data as T;

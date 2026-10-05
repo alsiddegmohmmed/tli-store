@@ -3,6 +3,8 @@ import type { ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { index as productsIndex } from '@/routes/products';
 import { index as posIndex } from '@/routes/pos';
+import { index as salesIndex } from '@/routes/sales';
+import { index as stockIndex } from '@/routes/stock';
 import { logout } from '@/routes';
 import type { SharedProps } from '@/types/store';
 
@@ -28,6 +30,40 @@ export default function AppLayout({ children }: { children: ReactNode }) {
                                 نقطة البيع
                             </Link>
                         </Button>
+                        <Button
+                            asChild
+                            variant={
+                                path.startsWith('/sales') ? 'default' : 'ghost'
+                            }
+                        >
+                            <Link
+                                href={salesIndex()}
+                                aria-current={
+                                    path.startsWith('/sales')
+                                        ? 'page'
+                                        : undefined
+                                }
+                            >
+                                المبيعات
+                            </Link>
+                        </Button>
+                        {auth.canManageProducts && (
+                            <Button
+                                asChild
+                                variant={
+                                    path === '/stock' ? 'default' : 'ghost'
+                                }
+                            >
+                                <Link
+                                    href={stockIndex()}
+                                    aria-current={
+                                        path === '/stock' ? 'page' : undefined
+                                    }
+                                >
+                                    المخزون
+                                </Link>
+                            </Button>
+                        )}
                         <Button
                             asChild
                             variant={path === '/products' ? 'default' : 'ghost'}

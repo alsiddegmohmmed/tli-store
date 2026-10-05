@@ -2,7 +2,7 @@
 
 Arabic RTL web platform for four cashier stations, connected stock, purchases, expenses and employee advances. The first release is online-only and must issue official Saudi invoices. Opening target: 1 November 2026.
 
-**Status:** first working foundation: staff login and roles, four station records, product creation/search, barcode entry, station-specific browser baskets and server-calculated previews. Checkout, stock movements, accounting posting, official invoicing and printer integration are not implemented. VAT registration is confirmed; company-specific Phase 2 details and physical device compatibility remain unverified.
+**Status:** staff login and roles, four stations, catalogue/barcode baskets, quantity-only opening stock, development sale posting, cash/card/split payment records, stock deductions and a balanced sales/VAT journal are implemented. Central sale history preserves document snapshots. Official invoicing, printing, stock valuation, purchases, returns and drawer closing are not implemented. Sale posting is restricted to local/test environments until official issuance is connected. VAT registration is confirmed; company-specific Phase 2 details and physical device compatibility remain unverified.
 
 Selected stack: **Laravel + React/TypeScript through Inertia + PostgreSQL**, using Tailwind and shadcn/ui for shared Arabic RTL components. Versions, rationale and integration boundaries are maintained in the [Engineering guide](docs/engineering-guide.md#selected-stack).
 
@@ -57,6 +57,8 @@ docker compose exec app php artisan db:seed --class=DemoProductSeeder
 
 Demo barcodes are `000001`, `000002` and `000003`. The demo seeder refuses non-local/non-test environments. No fixed staff password is committed. For this workstation's prepared demo, the generated login is in the ignored `storage/app/private/development-login.txt` file.
 
+For the demo, use **المخزون** to enter a counted opening quantity and its date/reference for a fictional product. Each product accepts one opening entry. Scan it in **نقطة البيع**, choose **تسجيل الدفع**, review cash/change or a manually confirmed external card result, then save the development sale. **المبيعات** shows the saved record, payment allocations and (for owner/accountant) its journal. These records are internal and are not official invoices. No card charge is executed by this application.
+
 After frontend changes, rebuild with `docker compose exec app npm run build` and reload the browser. For hot reload, run `docker compose exec app npm run dev -- --host 0.0.0.0`; keep that process running. Wayfinder route bindings are generated during the build and are not edited or committed manually.
 
 Stop development services with `docker compose stop`. Database data lives in the named Compose volume; removing that volume discards it.
@@ -78,16 +80,22 @@ docker compose exec app npm run types:check
 docker compose exec app npm run build
 ```
 
-The test configuration forces PostgreSQL database `tli_store_test`; the feature-test base class also checks that name. Feature tests rebuild only that dedicated database. Never point it at operational data. Backend checks include Pint and PHPStan; meaningful tests cover authentication, staff creation, permissions, barcode identity, decimal rounding and authoritative preview totals.
+The test configuration forces PostgreSQL database `tli_store_test`; the feature-test base class also checks that name. Feature tests rebuild only that dedicated database. Never point it at operational data. Backend checks include Pint and PHPStan. Tests cover permissions, barcode identity, decimal rounding, authoritative totals, split payment/change, snapshots, duplicate requests, rollback, one-time opening stock and concurrent posting. Four independent PHP processes compete for one unit in the dedicated PostgreSQL test database; only one may commit. Simultaneous retries must return the same sale.
 
-Manual browser checks cover Arabic RTL, scan focus, repeated scans, name search, fractional quantities, station switching and basket restoration after reload. Real scanner/printer behavior and simultaneous posting from four devices remain release acceptance work.
+Manual browser checks cover Arabic RTL, scan focus, basket drafts, opening stock and the development payment-to-sale workflow. Database concurrency tests complement practical acceptance on four actual devices; real scanner/printer, fiscal processing and backup restoration remain release work.
 
 ## Current boundaries and next slice
 
-Baskets are drafts in this browser tab's session storage, scoped by staff user and station. They survive reload and navigation but do not synchronize between devices and are not offline sales. The server re-reads catalogue prices and tax rates for every preview. Preview requests create no sale, invoice, payment, journal or stock movement.
+Baskets are drafts in this browser tab's session storage, scoped by staff user and station. They survive reload and navigation but do not synchronize between devices and are not offline sales. The server re-reads catalogue prices and tax rates for every preview. Preview requests create no sale, invoice, payment, journal or stock movement. Returning from payment review refreshes the quote so changed catalogue data can be reviewed again.
 
 Initial preview policy: tax-inclusive product prices; quantity up to three decimal places; each line's gross and net rounded half-up to two decimals; tax is gross minus net; totals sum the rounded lines. This is not a claim of ZATCA compliance. Tax classification and fiscal rounding must be reviewed when official invoicing is implemented.
 
-Next implement one committed sale with payments, stock and accounting effects in an atomic transaction, duplicate-submission protection and immutable snapshots; then connect fiscal issuance and receipt printing. Validate that complete workflow on a real POS before expanding release acceptance to all four devices.
+Saving a development sale commits its snapshots, applied payments, stock deduction and sales/VAT journal in one database transaction. Cash change is excluded from the sale payment; external card results are recorded manually into a card-clearing account. Products/balances are locked in a consistent order. The server blocks insufficient stock, stale quotes and unconfirmed card allocations. Cashiers can read their own sales; owner/accountant can read all sales and journals.
+
+An operation UUID is persisted in session storage before submission. An uncertain response freezes that attempt; recovery reuses its exact payload, even after catalogue deactivation. A completed retry returns the original sale. Do not close the tab or clear its storage during recovery; those actions lose the local recovery identity. Saved records remain in the central sales list. There is no delete/edit endpoint for posted sales.
+
+Opening entries establish quantities only, with an actor, date and source reference. The [stock policy](docs/store-mvp-workflows.md#sale-scan-to-central-records) and [undecided cost method](docs/store-mvp-workflows.md#data-relationships-and-posting-outcomes) are product decisions. Unknown costs are not treated as zero; no inventory value, cost of goods sold or profit is calculated. Opening corrections, later receipts and adjustments need their own linked workflows.
+
+Next connect official issuance and receipt printing, including their recovery states, before enabling production checkout. Cashier shifts/drawer closing and the remaining accounting workflows still need implementation. Validate that complete workflow on real POS hardware before launch.
 
 The application foundation was adapted from the [official Laravel React starter](https://github.com/laravel/react-starter-kit), under its MIT license. The shared working instructions remain in AGENTS.md and CLAUDE.md.

@@ -1,4 +1,4 @@
-import { Head, usePage } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 import { Trash2 } from 'lucide-react';
 import type { FormEvent } from 'react';
@@ -9,6 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useBasketQuote } from '@/features/pos/use-basket-quote';
+import { useSaleCheckout } from '@/features/pos/use-sale-checkout';
+import PaymentPanel from '@/features/pos/payment-panel';
 import { requestJson } from '@/lib/request-json';
 import { products as lookup } from '@/routes/pos';
 import type { BasketLine, Product, SharedProps, Station } from '@/types/store';
@@ -50,7 +52,13 @@ function restore(
     return { station: String(stations[0]?.id ?? ''), baskets: {} };
 }
 
-export default function Pos({ stations }: { stations: Station[] }) {
+export default function Pos({
+    stations,
+    canRecordSales,
+}: {
+    stations: Station[];
+    canRecordSales: boolean;
+}) {
     const { auth } = usePage<SharedProps>().props;
     const storageKey = `tli:pos:${auth.user.id}`;
     const [initial] = useState(() => restore(storageKey, stations));
@@ -64,6 +72,18 @@ export default function Pos({ stations }: { stations: Station[] }) {
     const [error, setError] = useState('');
     const [storageError, setStorageError] = useState(false);
     const scanner = useRef<HTMLInputElement>(null);
+    const [paymentOpen, setPaymentOpen] = useState(false);
+    const checkout = useSaleCheckout(auth.user.id, (sale) => {
+        const next = { ...baskets, [String(sale.station_id)]: [] };
+        sessionStorage.setItem(
+            storageKey,
+            JSON.stringify({ station, baskets: next }),
+        );
+        setBaskets(next);
+        setPaymentOpen(false);
+        scanner.current?.focus();
+    });
+    const locked = paymentOpen || !!checkout.pending || checkout.blocked;
     const {
         quote,
         pending,
@@ -166,6 +186,7 @@ export default function Pos({ stations }: { stations: Station[] }) {
                         id="station"
                         className="h-10 rounded-md border bg-card px-3"
                         value={station}
+                        disabled={locked}
                         onChange={(e) => {
                             setStation(e.target.value);
                             setMatches([]);
@@ -185,9 +206,52 @@ export default function Pos({ stations }: { stations: Station[] }) {
                 </div>
             </div>
             <p className="rounded-md border bg-card p-3 text-sm text-muted-foreground">
-                مرحلة التجهيز: يمكنك تكوين السلة ومعاينة الحساب. حفظ البيع
-                والدفع وإصدار الفاتورة لم تُفعّل بعد.
+                {canRecordSales
+                    ? 'وضع التجربة: حفظ البيع يسجل الدفع وحركة الكمية والقيد المالي. الفاتورة الرسمية والطباعة لم تُفعّلا بعد.'
+                    : 'يمكن تجهيز السلة. حفظ البيع غير متاح حتى اكتمال الفوترة الرسمية.'}
             </p>
+            {checkout.saved && (
+                <p
+                    role="status"
+                    className="rounded-md border bg-card p-3 text-success"
+                >
+                    حُفظ البيع التجريبي رقم {checkout.saved.id}. الباقي للعميل:{' '}
+                    <Money amount={checkout.saved.change} /> —{' '}
+                    <Link className="underline" href={checkout.saved.url}>
+                        فتح سجل البيع
+                    </Link>
+                </p>
+            )}
+            {checkout.error && (
+                <p
+                    role="alert"
+                    className="rounded-md border border-destructive p-3 text-destructive"
+                >
+                    {checkout.error}
+                </p>
+            )}
+            {checkout.pending && (
+                <div className="space-y-3 rounded-md border bg-card p-3">
+                    <p role="status">
+                        {checkout.saving
+                            ? 'جارٍ حفظ البيع…'
+                            : 'محاولة الحفظ محفوظة. استعد نتيجتها قبل إنشاء بيع جديد، ولا تكرر عملية البطاقة.'}
+                    </p>
+                    <p className="text-sm">
+                        رقم المحاولة:{' '}
+                        <bdi dir="ltr">{checkout.pending.operation_id}</bdi>
+                    </p>
+                    <Button
+                        type="button"
+                        disabled={checkout.saving}
+                        onClick={() => {
+                            void checkout.retry();
+                        }}
+                    >
+                        استعادة نفس محاولة الحفظ
+                    </Button>
+                </div>
+            )}
             {!station && (
                 <p role="alert" className="text-destructive">
                     لا يوجد صندوق متاح. اطلب من المسؤول تهيئة الصناديق.
@@ -212,7 +276,7 @@ export default function Pos({ stations }: { stations: Station[] }) {
                 </Button>
             )}
             <div className="grid items-start gap-4 lg:grid-cols-[1fr_20rem]">
-                <div className="space-y-4">
+                <fieldset disabled={locked} className="min-w-0 space-y-4">
                     <Card>
                         <CardContent className="space-y-4 pt-6">
                             <form
@@ -457,7 +521,7 @@ export default function Pos({ stations }: { stations: Station[] }) {
                             )}
                         </CardContent>
                     </Card>
-                </div>
+                </fieldset>
                 <Card className="lg:sticky lg:top-4">
                     <CardHeader>
                         <CardTitle>ملخص الحساب</CardTitle>
@@ -500,11 +564,41 @@ export default function Pos({ stations }: { stations: Station[] }) {
                                 جارٍ حساب الإجمالي…
                             </p>
                         )}
-                        <Button disabled className="w-full">
-                            الدفع — قيد التطوير
-                        </Button>
+                        {paymentOpen && quote ? (
+                            <PaymentPanel
+                                station={station}
+                                basket={basket}
+                                quote={quote}
+                                disabled={
+                                    !!checkout.pending || checkout.blocked
+                                }
+                                onSubmit={checkout.submit}
+                                onCancel={() => {
+                                    setPaymentOpen(false);
+                                    retry();
+                                    scanner.current?.focus();
+                                }}
+                            />
+                        ) : (
+                            <Button
+                                type="button"
+                                disabled={
+                                    !canRecordSales ||
+                                    !quote ||
+                                    pending ||
+                                    basket.length === 0 ||
+                                    !!checkout.pending ||
+                                    checkout.blocked
+                                }
+                                className="w-full"
+                                onClick={() => setPaymentOpen(true)}
+                            >
+                                تسجيل الدفع
+                            </Button>
+                        )}
                         <p className="text-xs text-muted-foreground">
-                            هذه معاينة للسلة؛ لا تنشئ عملية بيع ولا تغيّر المخزون.
+                            الكمية تتغير بعد تأكيد الحفظ فقط. تكلفة البضاعة
+                            والربح لم يُحسبا بعد.
                         </p>
                     </CardContent>
                 </Card>

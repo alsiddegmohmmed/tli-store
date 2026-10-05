@@ -1,6 +1,6 @@
 # Engineering guide
 
-Status: the first foundation is implemented and locally verified; later module boundaries remain a proposed starting structure. Current feature boundaries and setup commands are in [README](../README.md). Audience: developers and coding agents. Product behavior belongs in [MVP workflows](store-mvp-workflows.md); task execution rules belong in [AGENTS.md](../AGENTS.md).
+Status: the foundation and development-only sale posting slice are implemented and locally verified; later module boundaries remain proposed. Current feature boundaries and setup commands are in [README](../README.md). Audience: developers and coding agents. Product behavior belongs in [MVP workflows](store-mvp-workflows.md); task execution rules belong in [AGENTS.md](../AGENTS.md).
 
 ## Selected stack
 
@@ -49,11 +49,13 @@ Keep ZATCA processing behind a focused Laravel integration boundary using the ap
 
 ## Implemented foundation
 
-- Standard Laravel routes/controllers, form requests and Eloquent models handle staff sessions, catalogue and previews.
-- `app/Domain/Sales/InclusiveLineCalculator.php` owns preview arithmetic. Its current rounding policy is in README; reuse it rather than adding browser-side tax calculations.
-- `resources/js/features/pos/use-basket-quote.ts` requests server previews, cancels obsolete requests and supports retry. User/station browser drafts stay local to the POS page.
-- Shared fields and money display build on a small set of shadcn primitives. `resources/css/app.css` is the single semantic color/theme-token layer; Tailwind provides spacing and control layout.
-- Staff creation uses an interactive CLI with role selection. Public registration is disabled. Owner/accountant catalogue writes are authorized on the server; cashiers can search the catalogue and prepare baskets.
+- Standard Laravel routes/controllers, form requests and Eloquent models handle staff sessions, catalogue, stock openings, previews and sale history. Owner/accountant writes and sale-read permissions are enforced on the server.
+- `app/Domain/Sales/BasketCalculator.php` is the shared preview/save entry point; `InclusiveLineCalculator.php` owns decimal arithmetic. The current rounding policy is in README. A quote fingerprint forces price/tax/snapshot review when catalogue data changes. `PaymentCalculator.php` owns cash/card allocation and change; the browser requests those results rather than duplicating arithmetic.
+- `RecordSale.php` owns the atomic workflow: locks station, ordered products and balances; checks availability; records snapshots, applied payments and quantity movements; calls `JournalPoster.php` for a balanced revenue/VAT journal. The unique operation UUID plus canonical request hash makes unchanged retries return the original sale and rejects changed payloads. Production sale posting is disabled while fiscal issuance is missing.
+- `app/Domain/Stock/RecordOpeningStock.php` records one counted quantity per product with provenance. `StockAvailability.php` is shared by payment review and save. The [cost method remains undecided](store-mvp-workflows.md#data-relationships-and-posting-outcomes); this slice has no valuation or cost posting.
+- `resources/js/hooks/use-server-preview.ts` provides cancellation, stale-result isolation and retry for basket/payment previews. `use-sale-checkout.ts` persists the pending attempt before submission and preserves its identity after uncertain responses. Basket removal is persisted before that identity is cleared.
+- Shared fields, money/date displays and pagination reuse a small set of shadcn primitives. `resources/css/app.css` is the semantic color/theme-token layer. Arabic UI is written directly.
+- Staff creation uses an interactive CLI with role selection; public registration is disabled. Browser drafts are scoped by user/station. Stations are records, not implemented cash drawer shifts or exclusive device assignments.
 - The database-backed queue is configured but no fiscal jobs are implemented. Development Compose does not run a production server, queue worker or scheduler.
 
 Continue implementing only the boundaries needed by the next complete workflow.
