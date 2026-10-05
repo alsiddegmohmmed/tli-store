@@ -1,10 +1,10 @@
 # Engineering guide
 
-Status: selected stack and working constraints; module boundaries remain a proposed starting structure. No source tree exists. Audience: developers and coding agents. Product behavior belongs in [MVP workflows](store-mvp-workflows.md); task execution rules belong in [AGENTS.md](../AGENTS.md).
+Status: the first foundation is implemented and locally verified; later module boundaries remain a proposed starting structure. Current feature boundaries and setup commands are in [README](../README.md). Audience: developers and coding agents. Product behavior belongs in [MVP workflows](store-mvp-workflows.md); task execution rules belong in [AGENTS.md](../AGENTS.md).
 
 ## Selected stack
 
-Selected on 5 October 2026 under the owner's request to choose the stack. Use the official Laravel React starter as the implementation starting point when coding is authorized. Keep one repository and one application deployment, with modules inside it.
+Selected on 5 October 2026 under the owner's request to choose the stack. The first slice uses the official Laravel React starter. Keep one repository and one application deployment, with modules inside it.
 
 | Layer | Selection | Purpose |
 | --- | --- | --- |
@@ -18,7 +18,7 @@ Selected on 5 October 2026 under the owner's request to choose the stack. Use th
 | Build tools | Starter's Vite setup, Composer and npm with committed lockfiles | Reproducible PHP dependencies and frontend assets |
 | Checks | Laravel feature/unit tests using PHPUnit; starter lint/type/build checks | Focused backend correctness and frontend verification, expanded only where needed |
 
-These are major-version targets, not installed or compatibility-tested dependencies. At bootstrap, use maintained compatible releases and commit lockfiles. Verify the actual starter's RTL configuration and dependency combination before treating it as working. Do not independently assemble a second frontend framework or another authentication service.
+These major versions are installed in the Docker development environment; exact dependency versions are in composer.lock and package-lock.json. The initial build, type checks and Arabic RTL browser workflow are verified locally. Use maintained compatible releases and keep lockfiles current. Do not independently assemble a second frontend framework or another authentication service.
 
 ### Why this fits the store
 
@@ -46,6 +46,17 @@ Keep ZATCA processing behind a focused Laravel integration boundary using the ap
 - [shadcn/ui RTL guide](https://ui.shadcn.com/docs/rtl): direction support and component-specific migration limitations.
 - [PostgreSQL support policy](https://www.postgresql.org/support/versioning/): PostgreSQL 18 is supported through 14 November 2030; use maintained minor releases.
 - [Laravel queues](https://laravel.com/framework/docs/13.x/queues) and [PHP BCMath](https://www.php.net/manual/en/book.bc.php): background jobs and decimal arithmetic primitives. Rounding rules still belong to this application.
+
+## Implemented foundation
+
+- Standard Laravel routes/controllers, form requests and Eloquent models handle staff sessions, catalogue and previews.
+- `app/Domain/Sales/InclusiveLineCalculator.php` owns preview arithmetic. Its current rounding policy is in README; reuse it rather than adding browser-side tax calculations.
+- `resources/js/features/pos/use-basket-quote.ts` requests server previews, cancels obsolete requests and supports retry. User/station browser drafts stay local to the POS page.
+- Shared fields and money display build on a small set of shadcn primitives. `resources/css/app.css` is the single semantic color/theme-token layer; Tailwind provides spacing and control layout.
+- Staff creation uses an interactive CLI with role selection. Public registration is disabled. Owner/accountant catalogue writes are authorized on the server; cashiers can search the catalogue and prepare baskets.
+- The database-backed queue is configured but no fiscal jobs are implemented. Development Compose does not run a production server, queue worker or scheduler.
+
+Continue implementing only the boundaries needed by the next complete workflow.
 
 ## Build a base that can grow
 

@@ -8,7 +8,7 @@ Build a practical Arabic RTL POS and accounting platform for this store. Favor c
 - For product behavior, read the relevant section of [MVP workflows](docs/store-mvp-workflows.md).
 - Before implementation or structural changes, read [Engineering guide](docs/engineering-guide.md).
 - Use [Reference review](docs/reference-system-review.md) when evidence about Technolink is needed. Observed reference features are not automatically requirements.
-- Read applicable directory instructions and inspect existing code before editing. The selected stack is defined in the engineering guide; follow it instead of reopening the choice for routine tasks. No application exists yet; do not invent setup commands or completed features.
+- Read applicable directory instructions and inspect existing code before editing. The selected stack is defined in the engineering guide; follow it instead of reopening the choice for routine tasks. The first application slice exists; checked setup commands and current feature boundaries are in README. Do not claim later workflows are implemented.
 - The latest user decision takes precedence over older project notes. Update affected documents when a decision changes; ask only about contradictions that affect the current task.
 
 ## Work in small slices
