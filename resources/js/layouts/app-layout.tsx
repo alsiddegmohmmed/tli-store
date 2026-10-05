@@ -8,6 +8,7 @@ import { index as salesIndex } from '@/routes/sales';
 import { index as stockIndex } from '@/routes/stock';
 import { logout } from '@/routes';
 import { edit as companyEdit } from '@/routes/company';
+import { index as suppliersIndex } from '@/routes/suppliers';
 import type { SharedProps } from '@/types/store';
 
 export default function AppLayout({ children }: { children: ReactNode }) {
@@ -99,6 +100,27 @@ export default function AppLayout({ children }: { children: ReactNode }) {
                                 الأصناف
                             </Link>
                         </Button>
+                        {auth.canManagePurchases && (
+                            <Button
+                                asChild
+                                variant={
+                                    path.startsWith('/suppliers')
+                                        ? 'default'
+                                        : 'ghost'
+                                }
+                            >
+                                <Link
+                                    href={suppliersIndex()}
+                                    aria-current={
+                                        path.startsWith('/suppliers')
+                                            ? 'page'
+                                            : undefined
+                                    }
+                                >
+                                    الموردون
+                                </Link>
+                            </Button>
+                        )}
                         {auth.canManageCompany && (
                             <Button
                                 asChild

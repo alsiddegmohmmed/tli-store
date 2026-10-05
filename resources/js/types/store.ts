@@ -17,6 +17,7 @@ export type SharedProps = {
             role: 'owner' | 'accountant' | 'cashier';
         };
         canManageProducts: boolean;
+        canManagePurchases: boolean;
         canManageCompany: boolean;
     };
     flash: { success?: string };
@@ -156,6 +157,17 @@ export type StockCountInput = {
     counted_quantity: string;
     reference: string;
     reason: string;
+};
+
+export type Supplier = {
+    id: number;
+    name: string;
+    tax_number: string | null;
+    commercial_registration: string | null;
+    phone: string | null;
+    city: string | null;
+    notes: string | null;
+    is_active: boolean;
 };
 export type StockCount = {
     id: number;

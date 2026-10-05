@@ -117,6 +117,12 @@ Tax invoice, non-tax receipt, signed disbursement voucher and bank transfer proo
 
 For expenses, retain the spreadsheet's internal ID, external document reference, date, beneficiary, description, classification, printed tax evidence, funding source, payment method, actual payer, review status, notes and attachment. Tax eligibility and asset/prepayment classification require reviewed rules, not just a category dropdown.
 
+## Supplier records
+
+Implemented: owner/accountant can create, search, edit and deactivate suppliers; cashiers cannot access the register. A supplier requires a name. Tax number, commercial registration, phone, city and notes are optional, following the spreadsheet's supplier fields. Unknown details remain null; a missing tax number does not establish that a supplier is unregistered. Contact fields do not verify tax eligibility.
+
+Each supplier has a stable internal ID and recorded creator/last editor. Editing or deactivating preserves that identity; there is no delete action. Contact maintenance creates no purchase bill, payment, stock movement, journal or opening balance. Supplier document/payment totals will derive from linked transactions when those workflows exist, rather than editable contact totals. Future document posting must retain supplier snapshots so contact edits cannot rewrite issued records.
+
 ## Employee advances: avoid double counting
 
 Maintain employee movements and spending links, using IDs instead of matching employee names in text.

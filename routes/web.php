@@ -9,11 +9,18 @@ use App\Http\Controllers\SaleReceiptController;
 use App\Http\Controllers\ShiftCashTransferController;
 use App\Http\Controllers\StockController;
 use App\Http\Controllers\StockCountController;
+use App\Http\Controllers\SupplierController;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/pos')->name('home');
 
 Route::middleware('auth')->group(function (): void {
+    Route::middleware('can:manage-purchases')->group(function (): void {
+        Route::get('/suppliers', [SupplierController::class, 'index'])->name('suppliers.index');
+        Route::post('/suppliers', [SupplierController::class, 'store'])->name('suppliers.store');
+        Route::get('/suppliers/{supplier}/edit', [SupplierController::class, 'edit'])->name('suppliers.edit');
+        Route::put('/suppliers/{supplier}', [SupplierController::class, 'update'])->name('suppliers.update');
+    });
     Route::get('/shifts', [CashierShiftController::class, 'index'])->name('shifts.index');
     Route::post('/shifts', [CashierShiftController::class, 'store'])->name('shifts.store');
     Route::get('/shifts/{shift}', [CashierShiftController::class, 'show'])->name('shifts.show');

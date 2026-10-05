@@ -30,6 +30,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('manage-products', fn (User $user) => in_array($user->role, [UserRole::Owner, UserRole::Accountant], true));
         Gate::define('manage-company', fn (User $user) => $user->role === UserRole::Owner);
         Gate::define('manage-cash', fn (User $user) => in_array($user->role, [UserRole::Owner, UserRole::Accountant], true));
+        Gate::define('manage-purchases', fn (User $user) => in_array($user->role, [UserRole::Owner, UserRole::Accountant], true));
     }
 
     /**
