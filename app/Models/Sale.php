@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property numeric-string $cash_tender
  * @property numeric-string $change
  */
-#[Fillable(['operation_id', 'request_hash', 'cashier_id', 'station_id', 'net', 'tax', 'total', 'cash_tender', 'change', 'recorded_at', 'seller_snapshot'])]
+#[Fillable(['operation_id', 'request_hash', 'cashier_id', 'station_id', 'shift_id', 'net', 'tax', 'total', 'cash_tender', 'change', 'recorded_at', 'seller_snapshot'])]
 class Sale extends Model
 {
     public $timestamps = false;

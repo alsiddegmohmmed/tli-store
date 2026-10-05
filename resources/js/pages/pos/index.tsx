@@ -13,7 +13,14 @@ import { useSaleCheckout } from '@/features/pos/use-sale-checkout';
 import PaymentPanel from '@/features/pos/payment-panel';
 import { requestJson } from '@/lib/request-json';
 import { products as lookup } from '@/routes/pos';
-import type { BasketLine, Product, SharedProps, Station } from '@/types/store';
+import { index as shiftsIndex, show as shiftShow } from '@/routes/shifts';
+import type {
+    BasketLine,
+    Product,
+    SharedProps,
+    Station,
+    CashierShift,
+} from '@/types/store';
 
 type Baskets = Record<string, BasketLine[]>;
 function restore(
@@ -55,14 +62,18 @@ function restore(
 export default function Pos({
     stations,
     canRecordSales,
+    activeShift,
 }: {
     stations: Station[];
     canRecordSales: boolean;
+    activeShift: CashierShift | null;
 }) {
     const { auth } = usePage<SharedProps>().props;
     const storageKey = `tli:pos:${auth.user.id}`;
     const [initial] = useState(() => restore(storageKey, stations));
-    const [station, setStation] = useState(initial.station);
+    const [station, setStation] = useState(
+        activeShift ? String(activeShift.station_id) : initial.station,
+    );
     const [baskets, setBaskets] = useState<Baskets>(initial.baskets);
     const basket = baskets[station] ?? [];
     const [barcode, setBarcode] = useState('');
@@ -186,7 +197,7 @@ export default function Pos({
                         id="station"
                         className="h-10 rounded-md border bg-card px-3"
                         value={station}
-                        disabled={locked}
+                        disabled={locked || !!activeShift}
                         onChange={(e) => {
                             setStation(e.target.value);
                             setMatches([]);
@@ -209,6 +220,21 @@ export default function Pos({
                 {canRecordSales
                     ? 'وضع التجربة: حفظ البيع يسجل الدفع وحركة الكمية والقيد المالي. الفاتورة الرسمية لم تُفعّل بعد. إيصال التجربة متاح من سجل البيع.'
                     : 'يمكن تجهيز السلة. حفظ البيع غير متاح حتى اكتمال الفوترة الرسمية.'}
+            </p>
+            <p className="rounded-md border bg-card p-3 text-sm">
+                {activeShift ? (
+                    <Link
+                        className="underline"
+                        href={shiftShow(activeShift.id)}
+                    >
+                        الوردية المفتوحة رقم {activeShift.id} — عرض المطابقة
+                        والإغلاق
+                    </Link>
+                ) : (
+                    <Link className="underline" href={shiftsIndex()}>
+                        افتح وردية باسمك قبل تسجيل الدفع.
+                    </Link>
+                )}
             </p>
             {checkout.saved && (
                 <p
@@ -564,9 +590,10 @@ export default function Pos({
                                 جارٍ حساب الإجمالي…
                             </p>
                         )}
-                        {paymentOpen && quote ? (
+                        {paymentOpen && quote && activeShift ? (
                             <PaymentPanel
                                 station={station}
+                                shiftId={activeShift.id}
                                 basket={basket}
                                 quote={quote}
                                 disabled={
@@ -584,6 +611,7 @@ export default function Pos({
                                 type="button"
                                 disabled={
                                     !canRecordSales ||
+                                    !activeShift ||
                                     !quote ||
                                     pending ||
                                     basket.length === 0 ||

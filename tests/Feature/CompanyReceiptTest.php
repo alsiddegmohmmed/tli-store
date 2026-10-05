@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Domain\Sales\BasketCalculator;
 use App\Domain\Sales\RecordSale;
+use App\Domain\Shifts\OpenShift;
 use App\Domain\Stock\RecordOpeningStock;
 use App\Enums\UserRole;
 use App\Models\InventoryBalance;
@@ -35,9 +36,10 @@ class CompanyReceiptTest extends TestCase
             'product_id' => $product->id, 'quantity' => '3', 'opening_date' => now()->toDateString(), 'reference' => 'جرد تجريبي',
         ]);
         $station = PosStation::create(['code' => 'POS-1', 'name' => 'صندوق 1']);
+        $shift = app(OpenShift::class)->execute($cashier, ['operation_id' => (string) Str::uuid(), 'station_id' => $station->id, 'opening_cash' => '0.00']);
         $items = [['product_id' => $product->id, 'quantity' => '1']];
         $quote = app(BasketCalculator::class)->calculate($items, Product::all()->keyBy('id'));
-        $input = ['operation_id' => (string) Str::uuid(), 'station_id' => $station->id, 'items' => $items,
+        $input = ['operation_id' => (string) Str::uuid(), 'station_id' => $station->id, 'shift_id' => $shift->id, 'items' => $items,
             'quote_fingerprint' => $quote['fingerprint'], 'cash_tender' => '120', 'card_amount' => '0', 'card_confirmed' => false];
         $sale = app(RecordSale::class)->execute($cashier, $input);
 

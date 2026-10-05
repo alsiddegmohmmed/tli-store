@@ -1,3 +1,4 @@
+import { show as shiftShow } from '@/routes/shifts';
 import { Head, Link } from '@inertiajs/react';
 import Money from '@/components/money';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -34,6 +35,15 @@ export default function SaleDetail({
             <p className="text-sm text-muted-foreground">
                 <DateTime value={sale.recorded_at} /> — {sale.cashier.name} —{' '}
                 {sale.station.name}
+            </p>
+            <p className="text-sm text-muted-foreground">
+                {sale.shift_id ? (
+                    <Link href={shiftShow(sale.shift_id)} className="underline">
+                        الوردية رقم {sale.shift_id}
+                    </Link>
+                ) : (
+                    'بيع سابق غير مرتبط بوردية.'
+                )}
             </p>
             <Card>
                 <CardHeader>

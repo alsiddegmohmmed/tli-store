@@ -3,7 +3,9 @@
 namespace App\Domain\Sales;
 
 use App\Domain\Accounting\JournalPoster;
+use App\Domain\Shifts\OwnedOpenShift;
 use App\Domain\Stock\StockAvailability;
+use App\Models\CashierShift;
 use App\Models\CompanyProfile;
 use App\Models\InventoryBalance;
 use App\Models\PosStation;
@@ -14,10 +16,10 @@ use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
-/** @phpstan-type SaleInput array{operation_id: string, station_id: int, items: list<array{product_id: int, quantity: numeric-string}>, quote_fingerprint: string, cash_tender: numeric-string, card_amount: numeric-string, card_confirmed: bool, card_reference?: ?string} */
+/** @phpstan-type SaleInput array{operation_id: string, station_id: int, shift_id?: ?int, items: list<array{product_id: int, quantity: numeric-string}>, quote_fingerprint: string, cash_tender: numeric-string, card_amount: numeric-string, card_confirmed: bool, card_reference?: ?string} */
 class RecordSale
 {
-    public function __construct(private BasketCalculator $baskets, private PaymentCalculator $payments, private JournalPoster $journals, private StockAvailability $availability) {}
+    public function __construct(private BasketCalculator $baskets, private PaymentCalculator $payments, private JournalPoster $journals, private StockAvailability $availability, private OwnedOpenShift $shifts) {}
 
     /** @param SaleInput $data */
     public function execute(User $user, array $data): Sale
@@ -32,7 +34,7 @@ class RecordSale
 
         try {
             return DB::transaction(function () use ($user, $data, $hash): Sale {
-                // Always lock station first, then products in ID order. One station's saves serialize.
+                // Always lock station, shift, then products in ID order. One station's saves serialize.
                 $station = PosStation::whereKey($data['station_id'])->lockForUpdate()->firstOrFail();
                 $existing = Sale::where('operation_id', $data['operation_id'])->first();
                 if ($existing) {
@@ -41,6 +43,8 @@ class RecordSale
                 if (! $station->is_active) {
                     throw ValidationException::withMessages(['station_id' => 'هذا الصندوق غير متاح.']);
                 }
+                $shift = isset($data['shift_id']) ? CashierShift::whereKey($data['shift_id'])->where('station_id', $station->id)->lockForUpdate()->first() : null;
+                $shift = $this->shifts->assertAvailable($user, $shift);
                 $products = Product::whereIn('id', array_column($data['items'], 'product_id'))->orderBy('id')->lockForUpdate()->get()->keyBy('id');
                 $quote = $this->baskets->calculate($data['items'], $products);
                 if (! hash_equals($quote['fingerprint'], $data['quote_fingerprint'])) {
@@ -53,7 +57,7 @@ class RecordSale
                 $balances = InventoryBalance::whereIn('product_id', $products->keys())->orderBy('product_id')->lockForUpdate()->get()->keyBy('product_id');
                 $this->availability->assertAvailable($quote['lines'], $balances);
                 $sale = Sale::create(['operation_id' => $data['operation_id'], 'request_hash' => $hash,
-                    'cashier_id' => $user->id, 'station_id' => $station->id, ...$quote['totals'],
+                    'cashier_id' => $user->id, 'station_id' => $station->id, 'shift_id' => $shift->id, ...$quote['totals'],
                     'cash_tender' => $payment['cash_tender'], 'change' => $payment['change'], 'recorded_at' => now(),
                     'seller_snapshot' => CompanyProfile::find(1)?->sellerSnapshot()]);
                 foreach ($quote['lines'] as $line) {
@@ -104,7 +108,13 @@ class RecordSale
         $items = array_map(fn ($item) => ['product_id' => (int) $item['product_id'], 'quantity' => bcadd($item['quantity'], '0', 3)], $data['items']);
         usort($items, fn ($a, $b) => $a['product_id'] <=> $b['product_id']);
 
-        return hash('sha256', json_encode([(int) $data['station_id'], $items, $data['quote_fingerprint'],
-            bcadd($data['cash_tender'], '0', 2), bcadd($data['card_amount'], '0', 2), (bool) $data['card_confirmed'], $data['card_reference'] ?? null], JSON_THROW_ON_ERROR));
+        $identity = [(int) $data['station_id'], $items, $data['quote_fingerprint'],
+            bcadd($data['cash_tender'], '0', 2), bcadd($data['card_amount'], '0', 2), (bool) $data['card_confirmed'], $data['card_reference'] ?? null];
+        // Preserve the pre-shift identity format for recovery of earlier committed attempts.
+        if (isset($data['shift_id'])) {
+            $identity[] = (int) $data['shift_id'];
+        }
+
+        return hash('sha256', json_encode($identity, JSON_THROW_ON_ERROR));
     }
 }

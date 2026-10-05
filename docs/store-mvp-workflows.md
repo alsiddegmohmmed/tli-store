@@ -133,7 +133,11 @@ A direct employee payment without an advance is recorded as company spending plu
 
 Observed drawer opening fields: date, user, branch and opening amounts by cash/card method. The visible list contained no drawers; closing behavior was not verified.
 
-Proposed close: cashier enters counted cash; system computes opening cash + cash receipts − cash refunds + authorized cash in − cash out. Report variance, card totals and any unresolved payments. Card receipts go to a clearing account until reconciled with settlement and fees; they do not increase physical cash. Opening cash moved from another company drawer is a transfer, not new income.
+Implemented development close: the cashier opens a shift on an active station with counted opening cash, then closes it with counted cash and an optional note. One open shift per cashier and per station is enforced. Each new sale belongs to that cashier's exact open shift. Cashiers view and close their own shifts; owner/accountant can view all shifts. Closing saves sale count, sales total, cash/card allocations, expected cash, counted cash and signed variance. Expected cash is **opening cash + cash allocated to sales**, excluding customer change. Positive variance is excess; negative is shortage. Earlier sales remain unassigned and do not enter a new shift's totals.
+
+Opening cash is a counted baseline only. Opening/closing creates no income, cash transfer or variance journal. Card receipts remain in the sales card-clearing account; shift closing does not settle them. Closed records cannot be edited through the application. Identical closing retries return the saved result; a changed count/note is rejected. Sale posting and closing serialize on the station, so a racing sale either enters the closing total or is rejected. A committed sale can still be recovered after closing.
+
+Future close extensions: add cash refunds and authorized cash in/out when their linked workflows exist. The eventual formula is opening cash + cash receipts − cash refunds + authorized cash in − cash out. Opening cash moved from another company drawer requires a transfer record, not new income. Card settlement and fees need separate reconciliation.
 
 Proposed return: find original invoice, select remaining returnable quantities, record reason and condition, create linked credit note, determine refund method, and restock only suitable goods. Reject over-returning through concurrency-safe checks. Never silently edit the original issued invoice.
 

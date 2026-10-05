@@ -1,3 +1,4 @@
+import { index as shiftsIndex } from '@/routes/shifts';
 import { Link, usePage } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
@@ -49,6 +50,23 @@ export default function AppLayout({ children }: { children: ReactNode }) {
                                 }
                             >
                                 المبيعات
+                            </Link>
+                        </Button>
+                        <Button
+                            asChild
+                            variant={
+                                path.startsWith('/shifts') ? 'default' : 'ghost'
+                            }
+                        >
+                            <Link
+                                href={shiftsIndex()}
+                                aria-current={
+                                    path.startsWith('/shifts')
+                                        ? 'page'
+                                        : undefined
+                                }
+                            >
+                                الورديات
                             </Link>
                         </Button>
                         {auth.canManageProducts && (

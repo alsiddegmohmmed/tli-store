@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Domain\Sales\BasketCalculator;
 use App\Domain\Sales\PaymentCalculator;
+use App\Domain\Shifts\OwnedOpenShift;
 use App\Domain\Stock\StockAvailability;
 use App\Http\Requests\PaymentPreviewRequest;
 use App\Http\Requests\QuoteRequest;
+use App\Models\CashierShift;
 use App\Models\InventoryBalance;
 use App\Models\PosStation;
 use App\Models\Product;
@@ -18,11 +20,12 @@ use Inertia\Response;
 
 class PosController extends Controller
 {
-    public function index(): Response
+    public function index(Request $request): Response
     {
         return Inertia::render('pos/index', [
             'stations' => PosStation::where('is_active', true)->orderBy('code')->get(['id', 'code', 'name']),
             'canRecordSales' => app()->environment('local', 'testing'),
+            'activeShift' => CashierShift::where('cashier_id', $request->user()->id)->whereNull('closed_at')->with('station:id,name')->first(),
         ]);
     }
 
@@ -51,9 +54,10 @@ class PosController extends Controller
         return response()->json($calculator->calculate($data['items'], $products));
     }
 
-    public function paymentPreview(PaymentPreviewRequest $request, BasketCalculator $basket, PaymentCalculator $payments, StockAvailability $availability): JsonResponse
+    public function paymentPreview(PaymentPreviewRequest $request, BasketCalculator $basket, PaymentCalculator $payments, StockAvailability $availability, OwnedOpenShift $shifts): JsonResponse
     {
         $data = $request->validated();
+        $shifts->assertAvailable($request->user(), CashierShift::whereKey($data['shift_id'])->where('station_id', $data['station_id'])->first());
         $products = Product::whereIn('id', array_column($data['items'], 'product_id'))->get()->keyBy('id');
         $quote = $basket->calculate($data['items'], $products);
         if (! hash_equals($quote['fingerprint'], $data['quote_fingerprint'])) {
