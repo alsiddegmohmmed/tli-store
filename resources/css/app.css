@@ -1,0 +1,54 @@
+@import 'tailwindcss';
+@source '../views';
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+
+@theme inline {
+    --font-sans: Tahoma, Arial, sans-serif;
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --color-card: var(--card);
+    --color-card-foreground: var(--foreground);
+    --color-primary: var(--primary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-secondary: var(--muted);
+    --color-secondary-foreground: var(--foreground);
+    --color-muted: var(--muted);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-accent: var(--muted);
+    --color-accent-foreground: var(--foreground);
+    --color-destructive: var(--destructive);
+    --color-border: var(--border);
+    --color-input: var(--border);
+    --color-ring: var(--primary);
+    --color-success: var(--success);
+    --radius-sm: calc(var(--radius) - 4px);
+    --radius-md: calc(var(--radius) - 2px);
+    --radius-lg: var(--radius);
+}
+:root {
+    --background: #f5f6f8;
+    --foreground: #17202b;
+    --card: #fff;
+    --primary: #176b51;
+    --primary-foreground: #fff;
+    --muted: #eef1f3;
+    --muted-foreground: #596576;
+    --destructive: #b42318;
+    --success: #176b51;
+    --border: #d9dfe5;
+    --radius: 0.5rem;
+}
+@layer base {
+    * {
+        @apply border-border;
+    }
+    body {
+        @apply bg-background text-foreground;
+    }
+    button,
+    a,
+    input,
+    select {
+        @apply focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring;
+    }
+}
