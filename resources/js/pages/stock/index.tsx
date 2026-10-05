@@ -1,4 +1,12 @@
-import { Head, router, useForm } from '@inertiajs/react';
+import {
+    index as countsIndex,
+    store as countStore,
+} from '@/routes/stock/counts';
+import CountForm from '@/features/stock/count-form';
+import type { CountProduct } from '@/features/stock/count-form';
+import { useRecordedSubmission } from '@/hooks/use-recorded-submission';
+import type { SharedProps, StockCountInput } from '@/types/store';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import FormField from '@/components/form-field';
 import Pagination from '@/components/pagination';
@@ -13,6 +21,7 @@ type Row = {
     barcode: string;
     unit: string;
     quantity: string | null;
+    revision: number | null;
     reference: string | null;
     opening_date: string | null;
 };
@@ -25,6 +34,19 @@ export default function Stock({
     search: string;
     today: string;
 }) {
+    const { auth } = usePage<SharedProps>().props;
+    const [countProduct, setCountProduct] = useState<CountProduct | null>(null);
+    const counting = useRecordedSubmission<StockCountInput, { url: string }>({
+        storageKey: `tli:stock-count:${auth.user.id}`,
+        url: countStore.url(),
+        validateInput: (input) =>
+            Number.isInteger(input.product_id) &&
+            Number.isInteger(input.expected_revision) &&
+            typeof input.counted_quantity === 'string',
+        onConfirmed: (result) => router.visit(result.url),
+    });
+    const countLocked =
+        counting.saving || !!counting.pending || counting.blocked;
     const [query, setQuery] = useState(search);
     const [selected, setSelected] = useState<Row | null>(null);
     const form = useForm({
@@ -46,12 +68,78 @@ export default function Stock({
     return (
         <>
             <Head title="المخزون" />
-            <h1 className="text-2xl font-bold">المخزون</h1>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+                <h1 className="text-2xl font-bold">المخزون</h1>
+                <Button asChild variant="outline">
+                    <Link href={countsIndex()}>سجل تسويات الجرد</Link>
+                </Button>
+            </div>
             <p className="text-sm text-muted-foreground">
                 سجل الكمية من محضر جرد افتتاحي موثق، مرة واحدة لكل صنف. تقييم
-                المخزون والتكلفة والربح لم تُفعّل بعد. توريد المشتريات والتسويات
-                ستضاف في مراحل لاحقة.
+                المخزون والتكلفة والربح لم تُفعّل بعد. تسوية الجرد تصحح الكمية
+                فقط؛ توريد المشتريات سيضاف لاحقًا.
             </p>
+            {counting.error && (
+                <p
+                    role="alert"
+                    className="rounded-md border border-destructive p-3 text-destructive"
+                >
+                    {counting.error}
+                </p>
+            )}
+            {counting.pending && (
+                <div className="space-y-3 rounded-md border bg-card p-3">
+                    <p role="status">
+                        {counting.saving
+                            ? 'جارٍ حفظ الجرد…'
+                            : 'المحاولة محفوظة. استعد نفس النتيجة قبل تسجيل جرد آخر.'}
+                    </p>
+                    <p className="text-sm">
+                        الصنف رقم {counting.pending.input.product_id} — مرجع{' '}
+                        {counting.pending.input.reference}
+                    </p>
+                    <p className="text-sm">
+                        رقم المحاولة:{' '}
+                        <bdi dir="ltr">{counting.pending.operation_id}</bdi>
+                    </p>
+                    <Button
+                        disabled={counting.saving}
+                        onClick={() => void counting.retry()}
+                    >
+                        استعادة نفس محاولة الجرد
+                    </Button>
+                </div>
+            )}
+            {countProduct && (
+                <CountForm
+                    key={countProduct.id}
+                    product={countProduct}
+                    disabled={countLocked}
+                    onSubmit={counting.submit}
+                    onCancel={() => setCountProduct(null)}
+                    onRefresh={() =>
+                        router.reload({
+                            only: ['products'],
+                            onSuccess: (page) => {
+                                const current = (
+                                    page.props.products as Paginated<Row>
+                                ).data.find(
+                                    (row) => row.id === countProduct.id,
+                                );
+                                if (
+                                    current?.quantity != null &&
+                                    current.revision != null
+                                )
+                                    setCountProduct({
+                                        ...current,
+                                        quantity: current.quantity,
+                                        revision: current.revision,
+                                    });
+                            },
+                        })
+                    }
+                />
+            )}
             {selected && (
                 <Card>
                     <CardHeader>
@@ -116,7 +204,7 @@ export default function Stock({
                             <div className="flex gap-2">
                                 <Button
                                     type="submit"
-                                    disabled={form.processing}
+                                    disabled={form.processing || countLocked}
                                 >
                                     {form.processing
                                         ? 'جارٍ الحفظ…'
@@ -125,7 +213,7 @@ export default function Stock({
                                 <Button
                                     type="button"
                                     variant="outline"
-                                    disabled={form.processing}
+                                    disabled={form.processing || countLocked}
                                     onClick={() => setSelected(null)}
                                 >
                                     إلغاء
@@ -202,11 +290,38 @@ export default function Stock({
                                                 <Button
                                                     type="button"
                                                     variant="outline"
-                                                    onClick={() => select(row)}
+                                                    disabled={countLocked}
+                                                    onClick={() => {
+                                                        setCountProduct(null);
+                                                        select(row);
+                                                    }}
                                                 >
                                                     تسجيل الرصيد
                                                 </Button>
                                             )}
+                                            {row.quantity != null &&
+                                                row.revision != null && (
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        disabled={
+                                                            countLocked ||
+                                                            form.processing
+                                                        }
+                                                        onClick={() => {
+                                                            setSelected(null);
+                                                            setCountProduct({
+                                                                ...row,
+                                                                quantity:
+                                                                    row.quantity!,
+                                                                revision:
+                                                                    row.revision!,
+                                                            });
+                                                        }}
+                                                    >
+                                                        تسوية الجرد
+                                                    </Button>
+                                                )}
                                         </td>
                                     </tr>
                                 ))}

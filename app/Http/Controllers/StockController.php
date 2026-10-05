@@ -17,10 +17,10 @@ class StockController extends Controller
         $search = $request->validate(['search' => ['nullable', 'string', 'max:60']])['search'] ?? '';
         $products = Product::query()->leftJoin('inventory_balances', 'products.id', '=', 'inventory_balances.product_id')
             ->leftJoin('stock_openings', 'products.id', '=', 'stock_openings.product_id')
-            ->select(['products.id', 'products.name', 'products.barcode', 'products.unit', 'inventory_balances.quantity',
+            ->select(['products.id', 'products.name', 'products.barcode', 'products.unit', 'inventory_balances.quantity', 'inventory_balances.revision',
                 'stock_openings.reference', 'stock_openings.opening_date'])
             ->when($search !== '', fn ($query) => $query->where(fn ($q) => $q->where('products.name', 'like', '%'.$search.'%')->orWhere('products.barcode', 'like', '%'.$search.'%')))
-            ->orderBy('products.id')->paginate(20)->withQueryString();
+            ->withCasts(['revision' => 'integer'])->orderBy('products.id')->paginate(20)->withQueryString();
 
         return Inertia::render('stock/index', ['products' => $products, 'search' => $search, 'today' => now('Asia/Riyadh')->toDateString()]);
     }

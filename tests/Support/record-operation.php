@@ -3,6 +3,7 @@
 use App\Domain\Sales\RecordSale;
 use App\Domain\Shifts\CloseShift;
 use App\Domain\Shifts\OpenShift;
+use App\Domain\Stock\RecordStockCount;
 use App\Models\User;
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Validation\ValidationException;
@@ -27,6 +28,7 @@ while (! is_file($argv[1])) {
 try {
     $user = User::findOrFail($input['user_id']);
     $result = match ($input['action'] ?? 'sale') {
+        'stock_count' => app(RecordStockCount::class)->execute($user, $input['data']),
         'sale' => app(RecordSale::class)->execute($user, $input['data']),
         'open_shift' => app(OpenShift::class)->execute($user, $input['data']),
         'close_shift' => app(CloseShift::class)->execute($user, $input['data']['shift_id'], $input['data']['counted_cash'], null),

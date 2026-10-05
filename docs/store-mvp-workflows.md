@@ -141,6 +141,14 @@ Future close extensions: add cash refunds and authorized cash in/out when their 
 
 Proposed return: find original invoice, select remaining returnable quantities, record reason and condition, create linked credit note, determine refund method, and restock only suitable goods. Reject over-returning through concurrency-safe checks. Never silently edit the original issued invoice.
 
+## Stock-count corrections
+
+Implemented quantity-only correction: an owner/accountant selects a product with a recorded opening balance, enters its actual counted quantity (including zero), a count reference and a reason. The server saves the previous quantity, counted quantity, signed difference, actor, time and product snapshot. The balance becomes the counted quantity, with one linked stock movement for the difference. A matching count retains its count record without creating a zero-quantity movement. An unknown opening balance must first be verified; it is not treated as zero.
+
+Pause movement of the affected product while physically counting. The form captures a balance revision; if a sale or another count changes stock before confirmation, the server rejects the stale count. Refresh the balance and count again. Even if intervening movements restore the same quantity, the revision prevents silently accepting the old count. Confirming a correction can unblock a sale, but it does not bypass the cashier's availability check.
+
+A persisted operation ID recovers an uncertain submission without posting another movement. Reusing it with changed data or another actor is rejected. Saved counts are read-only; later corrections use new records. Historical product values and opening records remain unchanged. A quantity correction is not a purchase receipt, refund, expense or financial posting; cost valuation and its adjustment journal remain pending the cost-method decision.
+
 ## Data relationships and posting outcomes
 
 These records describe business relationships, not a fixed database schema or a requirement to scaffold every table now. Module boundaries, reuse and implementation controls belong in [Engineering guide](engineering-guide.md).

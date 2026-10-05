@@ -132,3 +132,24 @@ export type ShiftTotals = {
     card_sales: string;
     expected_cash: string;
 };
+
+export type StockCountInput = {
+    product_id: number;
+    expected_quantity: string;
+    expected_revision: number;
+    counted_quantity: string;
+    reference: string;
+    reason: string;
+};
+export type StockCount = {
+    id: number;
+    product_id: number;
+    product_snapshot: { name: string; barcode: string; unit: string };
+    recorded_quantity: string;
+    counted_quantity: string;
+    difference: string;
+    reference: string;
+    reason: string;
+    recorded_at: string;
+    author: { name: string };
+};

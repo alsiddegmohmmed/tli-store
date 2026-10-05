@@ -63,7 +63,7 @@ class RecordSale
                 foreach ($quote['lines'] as $line) {
                     $saleLine = $sale->lines()->create($line);
                     $balance = $balances->get($line['product_id']);
-                    $balance->update(['quantity' => bcsub($balance->quantity, $line['quantity'], 3)]);
+                    $balance->recordQuantity(bcsub($balance->quantity, $line['quantity'], 3));
                     DB::table('stock_movements')->insert(['product_id' => $line['product_id'], 'sale_line_id' => $saleLine->id,
                         'quantity' => bcsub('0', $line['quantity'], 3), 'created_at' => now()]);
                 }

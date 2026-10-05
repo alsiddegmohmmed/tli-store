@@ -7,6 +7,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\SaleReceiptController;
 use App\Http\Controllers\StockController;
+use App\Http\Controllers\StockCountController;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/pos')->name('home');
@@ -28,6 +29,11 @@ Route::middleware('auth')->group(function (): void {
     Route::put('/company', [CompanyProfileController::class, 'update'])->middleware('can:manage-company')->name('company.update');
     Route::get('/stock', [StockController::class, 'index'])->middleware('can:manage-products')->name('stock.index');
     Route::post('/stock/openings', [StockController::class, 'store'])->middleware('can:manage-products')->name('stock.openings');
+    Route::middleware('can:manage-products')->group(function (): void {
+        Route::get('/stock/counts', [StockCountController::class, 'index'])->name('stock.counts.index');
+        Route::post('/stock/counts', [StockCountController::class, 'store'])->name('stock.counts.store');
+        Route::get('/stock/counts/{count}', [StockCountController::class, 'show'])->name('stock.counts.show');
+    });
     Route::get('/products', [ProductController::class, 'index'])->name('products.index');
     Route::post('/products', [ProductController::class, 'store'])->middleware('can:manage-products')->name('products.store');
 });
