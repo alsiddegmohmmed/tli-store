@@ -28,6 +28,7 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureDefaults();
         Gate::define('manage-products', fn (User $user) => in_array($user->role, [UserRole::Owner, UserRole::Accountant], true));
+        Gate::define('manage-company', fn (User $user) => $user->role === UserRole::Owner);
     }
 
     /**

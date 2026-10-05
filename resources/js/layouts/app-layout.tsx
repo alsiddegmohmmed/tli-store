@@ -6,6 +6,7 @@ import { index as posIndex } from '@/routes/pos';
 import { index as salesIndex } from '@/routes/sales';
 import { index as stockIndex } from '@/routes/stock';
 import { logout } from '@/routes';
+import { edit as companyEdit } from '@/routes/company';
 import type { SharedProps } from '@/types/store';
 
 export default function AppLayout({ children }: { children: ReactNode }) {
@@ -16,7 +17,10 @@ export default function AppLayout({ children }: { children: ReactNode }) {
             <header className="border-b bg-card">
                 <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-4 px-4 py-4">
                     <span className="text-lg font-bold">تي إل آي</span>
-                    <nav aria-label="التنقل الرئيسي" className="flex gap-2">
+                    <nav
+                        aria-label="التنقل الرئيسي"
+                        className="flex flex-wrap gap-2"
+                    >
                         <Button
                             asChild
                             variant={path === '/pos' ? 'default' : 'ghost'}
@@ -77,6 +81,23 @@ export default function AppLayout({ children }: { children: ReactNode }) {
                                 الأصناف
                             </Link>
                         </Button>
+                        {auth.canManageCompany && (
+                            <Button
+                                asChild
+                                variant={
+                                    path === '/company' ? 'default' : 'ghost'
+                                }
+                            >
+                                <Link
+                                    href={companyEdit()}
+                                    aria-current={
+                                        path === '/company' ? 'page' : undefined
+                                    }
+                                >
+                                    الشركة
+                                </Link>
+                            </Button>
+                        )}
                     </nav>
                     <span className="ms-auto text-sm text-muted-foreground">
                         {auth.user.name}

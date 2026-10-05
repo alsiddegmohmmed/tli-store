@@ -45,6 +45,7 @@ Keep ZATCA processing behind a focused Laravel integration boundary using the ap
 - [Inertia](https://inertiajs.com/): React screens with server-side routing.
 - [shadcn/ui RTL guide](https://ui.shadcn.com/docs/rtl): direction support and component-specific migration limitations.
 - [PostgreSQL support policy](https://www.postgresql.org/support/versioning/): PostgreSQL 18 is supported through 14 November 2030; use maintained minor releases.
+- [ZATCA XML implementation standard](https://zatca.gov.sa/ar/E-Invoicing/SystemsDevelopers/Documents/20230519_ZATCA_Electronic_Invoice_XML_Implementation_Standard_%20vF.pdf), version 1.2 currently linked from the [official specifications page](https://zatca.gov.sa/en/E-Invoicing/SystemsDevelopers/Pages/E-Invoice-specifications.aspx), checked 5 October 2026: seller identity/address and format rules BR-KSA-09, 37, 40 and 66 informed the company form. Format validation does not verify the VAT number or establish fiscal compliance.
 - [Laravel queues](https://laravel.com/framework/docs/13.x/queues) and [PHP BCMath](https://www.php.net/manual/en/book.bc.php): background jobs and decimal arithmetic primitives. Rounding rules still belong to this application.
 
 ## Implemented foundation
@@ -56,6 +57,7 @@ Keep ZATCA processing behind a focused Laravel integration boundary using the ap
 - `resources/js/hooks/use-server-preview.ts` provides cancellation, stale-result isolation and retry for basket/payment previews. `use-sale-checkout.ts` persists the pending attempt before submission and preserves its identity after uncertain responses. Basket removal is persisted before that identity is cleared.
 - Shared fields, money/date displays and pagination reuse a small set of shadcn primitives. `resources/css/app.css` is the semantic color/theme-token layer. Arabic UI is written directly.
 - Staff creation uses an interactive CLI with role selection; public registration is disabled. Browser drafts are scoped by user/station. Stations are records, not implemented cash drawer shifts or exclusive device assignments.
+- `CompanyProfile` stores the single store's validated seller identity/address; only the owner manages it. `RecordSale` captures a JSON seller snapshot at posting. Missing historical seller details remain null. `SalePolicy` owns record/receipt read authorization. The receipt route only reads existing snapshots and uses the shared `SaleReceipt`, `Money` and `DateTime` components; screen controls are hidden for print. Physical paper widths are named CSS tokens, not a printer SDK or a compliance claim.
 - The database-backed queue is configured but no fiscal jobs are implemented. Development Compose does not run a production server, queue worker or scheduler.
 
 Continue implementing only the boundaries needed by the next complete workflow.

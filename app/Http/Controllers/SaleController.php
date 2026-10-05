@@ -8,6 +8,7 @@ use App\Models\Sale;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -31,7 +32,7 @@ class SaleController extends Controller
 
     public function show(Request $request, Sale $sale): Response
     {
-        abort_unless($request->user()->can('manage-products') || $sale->cashier_id === $request->user()->id, 403);
+        Gate::authorize('view', $sale);
         $sale->load(['cashier:id,name', 'station:id,name', 'lines', 'payments']);
         $journal = $request->user()->can('manage-products') ? DB::table('journal_lines')
             ->join('journal_entries', 'journal_lines.journal_entry_id', '=', 'journal_entries.id')

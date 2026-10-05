@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property numeric-string $cash_tender
  * @property numeric-string $change
  */
-#[Fillable(['operation_id', 'request_hash', 'cashier_id', 'station_id', 'net', 'tax', 'total', 'cash_tender', 'change', 'recorded_at'])]
+#[Fillable(['operation_id', 'request_hash', 'cashier_id', 'station_id', 'net', 'tax', 'total', 'cash_tender', 'change', 'recorded_at', 'seller_snapshot'])]
 class Sale extends Model
 {
     public $timestamps = false;
@@ -23,7 +23,7 @@ class Sale extends Model
     protected function casts(): array
     {
         return ['net' => 'decimal:2', 'tax' => 'decimal:2', 'total' => 'decimal:2',
-            'cash_tender' => 'decimal:2', 'change' => 'decimal:2', 'recorded_at' => 'immutable_datetime'];
+            'cash_tender' => 'decimal:2', 'change' => 'decimal:2', 'recorded_at' => 'immutable_datetime', 'seller_snapshot' => 'array'];
     }
 
     /** @return HasMany<SaleLine, $this> */

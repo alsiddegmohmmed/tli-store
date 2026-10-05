@@ -157,6 +157,8 @@ These records describe business relationships, not a fixed database schema or a 
 
 Historical cost and price changes must not rewrite posted document values. **Cost method remains undecided**, by the owner's decision on 5 October 2026. Do not implement moving weighted average or another valuation method until agreed. Current opening/sale movements track quantities only; opening costs remain unknown, with no inventory valuation, cost-of-goods-sold posting or profit report. Sale journals record applied cash/card clearing, sales revenue and output VAT only. Technolink's valuation method was not established.
 
+The implemented company form captures seller name, VAT number, commercial registration and structured Saudi address. New development sales retain a seller snapshot. Owner edits affect future sales; missing seller data on earlier records remains unknown. The development receipt is clearly labeled for testing and can be reopened without posting another transaction; it is not an official invoice.
+
 Separate a recorded sale, an issued invoice, any required clearance/reporting and a print attempt. Confirm the applicable issuance order before implementing; do not present pending or rejected fiscal processing as completed compliance. Retrying external processing must preserve the same business transaction.
 
 Issued documents cannot be destructively changed. Correct them using permitted linked documents/reversals with audit history. Payment status, supplier balance and dashboard totals derive from the underlying records rather than independent editable totals.
