@@ -13,6 +13,7 @@ import type {
 
 type Props = {
     station: string;
+    shiftId: number;
     basket: BasketLine[];
     quote: Quote;
     disabled: boolean;
@@ -21,6 +22,7 @@ type Props = {
 };
 export default function PaymentPanel({
     station,
+    shiftId,
     basket,
     quote,
     disabled,
@@ -33,6 +35,7 @@ export default function PaymentPanel({
     const [reference, setReference] = useState('');
     const input: CheckoutInput = {
         station_id: Number(station),
+        shift_id: shiftId,
         items: basket.map((line) => ({
             product_id: line.product.id,
             quantity: line.quantity,
@@ -47,6 +50,7 @@ export default function PaymentPanel({
         paymentPreview.url(),
         JSON.stringify({
             station_id: input.station_id,
+            shift_id: shiftId,
             items: input.items,
             quote_fingerprint: input.quote_fingerprint,
             cash_tender: cash,

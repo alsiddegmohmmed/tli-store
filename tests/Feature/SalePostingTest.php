@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Domain\Accounting\JournalPoster;
 use App\Domain\Sales\RecordSale;
+use App\Domain\Shifts\OpenShift;
 use App\Domain\Stock\RecordOpeningStock;
 use App\Enums\UserRole;
 use App\Models\InventoryBalance;
@@ -27,12 +28,15 @@ class SalePostingTest extends TestCase
 
     private PosStation $station;
 
+    private int $shiftId;
+
     protected function setUp(): void
     {
         parent::setUp();
         $this->cashier = User::factory()->create();
         $this->product = Product::create(['barcode' => '00001', 'name' => 'صنف اختبار', 'unit' => 'حبة', 'price' => '115.00', 'tax_rate' => '15.00']);
         $this->station = PosStation::create(['code' => 'POS-1', 'name' => 'صندوق 1']);
+        $this->shiftId = app(OpenShift::class)->execute($this->cashier, ['operation_id' => (string) Str::uuid(), 'station_id' => $this->station->id, 'opening_cash' => '100.00'])->id;
         app(RecordOpeningStock::class)->execute(User::factory()->create(['role' => UserRole::Owner]), [
             'product_id' => $this->product->id, 'quantity' => '5', 'opening_date' => now()->toDateString(), 'reference' => 'جرد تجريبي',
         ]);
@@ -43,7 +47,7 @@ class SalePostingTest extends TestCase
         $items = [['product_id' => $this->product->id, 'quantity' => '2']];
         $fingerprint = $this->actingAs($this->cashier)->postJson('/pos/quote', ['station_id' => $this->station->id, 'items' => $items])->assertOk()->json('fingerprint');
 
-        return ['operation_id' => (string) Str::uuid(), 'station_id' => $this->station->id, 'items' => $items,
+        return ['operation_id' => (string) Str::uuid(), 'station_id' => $this->station->id, 'shift_id' => $this->shiftId, 'items' => $items,
             'quote_fingerprint' => $fingerprint, 'cash_tender' => '150.00', 'card_amount' => '100.00', 'card_confirmed' => true, 'card_reference' => 'TEST-123'];
     }
 

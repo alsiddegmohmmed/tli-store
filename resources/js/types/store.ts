@@ -44,6 +44,7 @@ export type PaymentQuote = {
     change: string;
 };
 export type CheckoutInput = {
+    shift_id?: number;
     station_id: number;
     items: { product_id: number; quantity: string }[];
     quote_fingerprint: string;
@@ -83,6 +84,7 @@ export type SellerSnapshot = CompanyProfile & {
     profile_updated_at: string;
 };
 export type SaleDetail = SaleSummary & {
+    shift_id: number | null;
     net: string;
     tax: string;
     cash_tender: string;
@@ -108,4 +110,25 @@ export type SaleDetail = SaleSummary & {
         reference: string | null;
         manually_confirmed: boolean;
     }[];
+};
+
+export type CashierShift = {
+    id: number;
+    station_id: number;
+    cashier_id: number;
+    opening_cash: string;
+    opened_at: string;
+    closed_at: string | null;
+    counted_cash: string | null;
+    difference: string | null;
+    closing_note: string | null;
+    station: { id: number; name: string };
+    cashier: { id: number; name: string };
+};
+export type ShiftTotals = {
+    sale_count: number;
+    sales_total: string;
+    cash_sales: string;
+    card_sales: string;
+    expected_cash: string;
 };

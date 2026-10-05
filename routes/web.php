@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CashierShiftController;
 use App\Http\Controllers\CompanyProfileController;
 use App\Http\Controllers\PosController;
 use App\Http\Controllers\ProductController;
@@ -11,6 +12,10 @@ use Illuminate\Support\Facades\Route;
 Route::redirect('/', '/pos')->name('home');
 
 Route::middleware('auth')->group(function (): void {
+    Route::get('/shifts', [CashierShiftController::class, 'index'])->name('shifts.index');
+    Route::post('/shifts', [CashierShiftController::class, 'store'])->name('shifts.store');
+    Route::get('/shifts/{shift}', [CashierShiftController::class, 'show'])->name('shifts.show');
+    Route::post('/shifts/{shift}/close', [CashierShiftController::class, 'close'])->name('shifts.close');
     Route::get('/pos', [PosController::class, 'index'])->name('pos.index');
     Route::get('/pos/products', [PosController::class, 'lookup'])->name('pos.products');
     Route::post('/pos/quote', [PosController::class, 'quote'])->name('pos.quote');
