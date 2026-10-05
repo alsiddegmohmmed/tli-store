@@ -74,7 +74,7 @@ class RecordSale
                     $sale->payments()->create(['method' => 'card', 'amount' => $payment['card_amount'],
                         'reference' => $data['card_reference'] ?? null, 'manually_confirmed' => true]);
                 }
-                $this->journals->post($sale->id, $user->id, now('Asia/Riyadh')->toDateString(), 'تسجيل بيع داخلي رقم '.$sale->id, [
+                $this->journals->post(['sale_id' => $sale->id], $user->id, now('Asia/Riyadh')->toDateString(), 'تسجيل بيع داخلي رقم '.$sale->id, [
                     ['account_code' => 'cash', 'debit' => $payment['cash_applied']],
                     ['account_code' => 'card_clearing', 'debit' => $payment['card_amount']],
                     ['account_code' => 'sales', 'credit' => $sale->net],

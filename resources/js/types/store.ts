@@ -130,7 +130,23 @@ export type ShiftTotals = {
     sales_total: string;
     cash_sales: string;
     card_sales: string;
+    cash_in: string;
+    cash_out: string;
     expected_cash: string;
+};
+
+export type CashTransferInput = {
+    direction: 'in' | 'out';
+    amount: string;
+    reference: string;
+    reason: string;
+};
+export type ShiftCashTransfer = CashTransferInput & {
+    id: number;
+    shift_id: number;
+    operation_id: string;
+    recorded_at: string;
+    author: { name: string };
 };
 
 export type StockCountInput = {

@@ -6,13 +6,15 @@ import { index, receipt } from '@/routes/sales';
 import { Button } from '@/components/ui/button';
 import type { SaleDetail } from '@/types/store';
 import DateTime from '@/components/date-time';
+import JournalTable from '@/features/accounting/journal-table';
+import type { JournalLine } from '@/features/accounting/journal-table';
 
 export default function SaleDetail({
     sale,
     journal,
 }: {
     sale: SaleDetail;
-    journal: { name: string; debit: string; credit: string }[];
+    journal: JournalLine[];
 }) {
     return (
         <>
@@ -147,41 +149,7 @@ export default function SaleDetail({
                     </CardContent>
                 </Card>
             </div>
-            {journal.length > 0 && (
-                <Card>
-                    <CardHeader>
-                        <CardTitle>القيد المالي</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-start text-sm">
-                                <thead>
-                                    <tr className="border-b">
-                                        <th className="p-3 text-start">
-                                            الحساب
-                                        </th>
-                                        <th className="p-3 text-start">مدين</th>
-                                        <th className="p-3 text-start">دائن</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {journal.map((line, i) => (
-                                        <tr key={i} className="border-b">
-                                            <td className="p-3">{line.name}</td>
-                                            <td className="p-3">
-                                                <Money amount={line.debit} />
-                                            </td>
-                                            <td className="p-3">
-                                                <Money amount={line.credit} />
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </CardContent>
-                </Card>
-            )}
+            <JournalTable lines={journal} />
         </>
     );
 }

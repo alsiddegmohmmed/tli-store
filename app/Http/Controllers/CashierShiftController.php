@@ -10,6 +10,7 @@ use App\Http\Requests\OpenShiftRequest;
 use App\Models\CashierShift;
 use App\Models\PosStation;
 use App\Models\Sale;
+use App\Models\ShiftCashTransfer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -40,11 +41,13 @@ class CashierShiftController extends Controller
     {
         Gate::authorize('view', $shift);
         $shift->load(['cashier:id,name', 'station:id,name']);
-        $summary = $shift->closed_at ? $shift->only(['sale_count', 'sales_total', 'cash_sales', 'card_sales', 'expected_cash']) : $totals->calculate($shift);
+        $summary = $shift->closed_at ? $shift->only(['sale_count', 'sales_total', 'cash_sales', 'card_sales', 'cash_in', 'cash_out', 'expected_cash']) : $totals->calculate($shift);
 
         return Inertia::render('shifts/show', ['shift' => $shift, 'summary' => $summary,
             'canClose' => $request->user()->can('close', $shift),
-            'sales' => Sale::where('shift_id', $shift->id)->with(['cashier:id,name', 'station:id,name'])->orderByDesc('id')->paginate(20)]);
+            'canTransfer' => $request->user()->can('transferCash', $shift),
+            'transfers' => ShiftCashTransfer::where('shift_id', $shift->id)->with('author:id,name')->orderByDesc('id')->paginate(20, ['*'], 'transfers_page')->withQueryString(),
+            'sales' => Sale::where('shift_id', $shift->id)->with(['cashier:id,name', 'station:id,name'])->orderByDesc('id')->paginate(20)->withQueryString()]);
     }
 
     public function close(CloseShiftRequest $request, CashierShift $shift, CloseShift $action): RedirectResponse

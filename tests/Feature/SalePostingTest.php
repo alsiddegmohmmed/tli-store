@@ -55,7 +55,7 @@ class SalePostingTest extends TestCase
     {
         $this->expectException(\LogicException::class);
         $this->expectExceptionMessage('Journal amounts must be rounded to cents before posting.');
-        DB::transaction(fn () => app(JournalPoster::class)->post(1, $this->cashier->id, now()->toDateString(), 'اختبار', [
+        DB::transaction(fn () => app(JournalPoster::class)->post(['sale_id' => 1], $this->cashier->id, now()->toDateString(), 'اختبار', [
             ['account_code' => 'cash', 'debit' => '0.014'],
             ['account_code' => 'sales', 'credit' => '0.016'],
         ]));

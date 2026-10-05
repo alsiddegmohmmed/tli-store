@@ -3,6 +3,7 @@
 use App\Domain\Sales\RecordSale;
 use App\Domain\Shifts\CloseShift;
 use App\Domain\Shifts\OpenShift;
+use App\Domain\Shifts\RecordCashTransfer;
 use App\Domain\Stock\RecordStockCount;
 use App\Models\User;
 use Illuminate\Contracts\Console\Kernel;
@@ -31,6 +32,7 @@ try {
         'stock_count' => app(RecordStockCount::class)->execute($user, $input['data']),
         'sale' => app(RecordSale::class)->execute($user, $input['data']),
         'open_shift' => app(OpenShift::class)->execute($user, $input['data']),
+        'cash_transfer' => app(RecordCashTransfer::class)->execute($user, $input['shift_id'], $input['data']),
         'close_shift' => app(CloseShift::class)->execute($user, $input['data']['shift_id'], $input['data']['counted_cash'], null),
     };
     echo json_encode(['ok' => true, 'id' => $result->id], JSON_THROW_ON_ERROR);

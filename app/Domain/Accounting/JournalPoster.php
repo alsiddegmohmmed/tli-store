@@ -9,9 +9,10 @@ class JournalPoster
     /**
      * Caller owns the surrounding business transaction.
      *
+     * @param  array{sale_id: int}|array{shift_cash_transfer_id: int}  $source
      * @param  list<array{account_code: string, debit?: numeric-string, credit?: numeric-string}>  $lines
      */
-    public function post(int $saleId, int $userId, string $date, string $description, array $lines): int
+    public function post(array $source, int $userId, string $date, string $description, array $lines): int
     {
         if (DB::transactionLevel() < 1) {
             throw new \LogicException('Journal posting requires a business transaction.');
@@ -38,9 +39,9 @@ class JournalPoster
             throw new \LogicException('Unbalanced journal.');
         }
         if ($rows === []) {
-            throw new \LogicException('A posted sale requires journal lines.');
+            throw new \LogicException('A posted document requires journal lines.');
         }
-        $id = DB::table('journal_entries')->insertGetId(['sale_id' => $saleId,
+        $id = DB::table('journal_entries')->insertGetId([...$source,
             'created_by' => $userId, 'posting_date' => $date, 'description' => $description, 'created_at' => now()]);
         DB::table('journal_lines')->insert(array_map(fn ($line) => ['journal_entry_id' => $id, ...$line], $rows));
 

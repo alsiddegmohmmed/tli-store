@@ -6,6 +6,7 @@ use App\Http\Controllers\PosController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\SaleReceiptController;
+use App\Http\Controllers\ShiftCashTransferController;
 use App\Http\Controllers\StockController;
 use App\Http\Controllers\StockCountController;
 use Illuminate\Support\Facades\Route;
@@ -17,6 +18,8 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/shifts', [CashierShiftController::class, 'store'])->name('shifts.store');
     Route::get('/shifts/{shift}', [CashierShiftController::class, 'show'])->name('shifts.show');
     Route::post('/shifts/{shift}/close', [CashierShiftController::class, 'close'])->name('shifts.close');
+    Route::post('/shifts/{shift}/cash-transfers', [ShiftCashTransferController::class, 'store'])->name('shifts.cash-transfers.store');
+    Route::get('/shifts/{shift}/cash-transfers/{transfer}', [ShiftCashTransferController::class, 'show'])->name('shifts.cash-transfers.show');
     Route::get('/pos', [PosController::class, 'index'])->name('pos.index');
     Route::get('/pos/products', [PosController::class, 'lookup'])->name('pos.products');
     Route::post('/pos/quote', [PosController::class, 'quote'])->name('pos.quote');

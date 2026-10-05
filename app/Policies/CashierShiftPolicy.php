@@ -16,4 +16,9 @@ class CashierShiftPolicy
     {
         return $shift->cashier_id === $user->id;
     }
+
+    public function transferCash(User $user, CashierShift $shift): bool
+    {
+        return $user->can('manage-cash');
+    }
 }

@@ -2,7 +2,7 @@
 
 Reviewed: 2026-10-05 (Asia/Riyadh)
 
-Status: historical discovery evidence; no application has been implemented.
+Status: reference discovery evidence. Current implementation status is maintained in [README](../README.md).
 
 This document records what was visible in Technolink on the review date. Product scope belongs in [MVP workflows](store-mvp-workflows.md); implementation guidance belongs in [Engineering guide](engineering-guide.md). Features listed here are evidence, not a requirement to copy every feature.
 
@@ -26,7 +26,7 @@ The observed screens establish available fields and navigation. They do not esta
 | Sales / المبيعات | Sales invoices, sales returns, customers, customer orders, customer messages, points history, quotations, invoice delivery | Inspected invoice form/list, return form, customer form; remaining features menu only |
 | Purchases / المشتريات | Purchase invoices, purchase returns, suppliers | Inspected purchase form/list/detail, return form and supplier form |
 | Services / الخدمات | Menu heading and service-ticket shortcut on home | Expanded menu showed no child entries in this session |
-| Settings / الإعدادات | Company information, branches, taxes, payment methods, branch payments, system setup; setup includes answers and setting sections | Payment methods list/detail inspected; remaining features menu only |
+| Settings / الإعدادات | Company information, branches, taxes, payment methods, branch payments, system setup; setup includes answers and setting sections | Payment methods, company form, branches, answers and setting-section catalogue inspected; item-settings detail permission blocked |
 | Users / المستخدمون | Permission setup, with a pages submenu | Menu only; no permission changes |
 | Appointments / المواعيد | Appointments, reservations, appointment booking, my reservations | Menu only |
 | Reports / التقارير | Account, sales, purchase, and item report families | All visible report submenus expanded; cash flow, tax, and sales-profit screens inspected |
@@ -78,6 +78,16 @@ Items contain code/barcode, group, tax treatment, Arabic/English descriptions, c
 
 The stock-count screen compares counted quantity with system quantity and provides a stock-correction control. The effect of submitting a correction was not tested.
 
+### Costing options and fiscal onboarding follow-up
+
+Sources: [Answers](https://0563638246.technolinkapp.com/answers), [Branches](https://0563638246.technolinkapp.com/branches), [Setting sections](https://0563638246.technolinkapp.com/setting_sections), [Purchase form](https://0563638246.technolinkapp.com/purchases_invoices/add) and [Sales invoice list](https://0563638246.technolinkapp.com/sales_invoices/list). Inspected again on 5 October 2026 after the user signed in.
+
+The answers catalogue contains `change_cost` choices **متوسط التكلفة** (`average`, average cost) and **آخر تكلفة** (`last`, last cost). These are available option definitions, not evidence of the store's selected policy. Opening the item-settings section returned Access Forbidden. The purchase entry form exposes item costs but did not reveal a selected costing policy. The average-cost formula, its update timing and the financial effect of stock corrections remain unverified.
+
+The branch list displays a positive tick under **حالة التهيئة (onboarding)** for the store's branch. This is evidence that Technolink marks the branch as onboarded. It does not establish the production connection, successful reporting/clearance of an invoice, the company's Phase 2 deadline or readiness of the replacement platform. Branch detail actions were unavailable to this account.
+
+The sales invoice list exposes **حالة الإرسال** and **الزكاة** columns, but displayed no invoice rows in the reviewed view. Expanded search filters showed no selected invoice type, branch or user filter. No accepted invoice, fiscal artifact or submission response was available to inspect. No live transaction or setting was changed.
+
 ### Expenses, receipts, and cash
 
 Sources: [Expenses](https://0563638246.technolinkapp.com/expenses), [Receipts](https://0563638246.technolinkapp.com/receipts), [Accounts](https://0563638246.technolinkapp.com/accounts), [Transfers](https://0563638246.technolinkapp.com/money_transfers), [Drawer transactions](https://0563638246.technolinkapp.com/treasuries_transactions).
@@ -102,6 +112,6 @@ The revenues/payments screen groups account, source page, payment method, and am
 
 ## Follow-up evidence still needed
 
-Supplier account statements were permission blocked. Saving/posting, costing, hardware scanning/printing, payment execution and ZATCA integration were not tested. The initial empty lists do not establish that historical data is absent. No live records were changed.
+Supplier account statements and item-settings details were permission blocked. Available costing options and a positive branch-onboarding indicator were observed, but the active costing formula and successful fiscal submission remain unverified. Saving/posting, hardware scanning/printing and payment execution were not tested. The initial empty lists do not establish that historical data is absent. No live records were changed.
 
 Use the MVP workflow document for open business inputs and acceptance outcomes. Do not infer backend behavior, legal compliance or hardware compatibility from the visible fields.

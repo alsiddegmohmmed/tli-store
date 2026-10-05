@@ -7,20 +7,31 @@ import type { Paginated } from '@/components/pagination';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import SalesTable from '@/features/sales/sales-table';
+import CashTransferForm from '@/features/shifts/cash-transfer-form';
 import { close } from '@/routes/shifts';
+import { show as transferShow } from '@/routes/shifts/cash-transfers';
 import { index as posIndex } from '@/routes/pos';
-import type { CashierShift, SaleSummary, ShiftTotals } from '@/types/store';
+import type {
+    CashierShift,
+    SaleSummary,
+    ShiftTotals,
+    ShiftCashTransfer,
+} from '@/types/store';
 
 export default function Shift({
     shift,
     summary,
     sales,
     canClose,
+    canTransfer,
+    transfers,
 }: {
     shift: CashierShift;
     summary: ShiftTotals;
     sales: Paginated<SaleSummary>;
     canClose: boolean;
+    canTransfer: boolean;
+    transfers: Paginated<ShiftCashTransfer>;
 }) {
     const form = useForm({ counted_cash: '', closing_note: '' });
     return (
@@ -41,9 +52,9 @@ export default function Shift({
                 <DateTime value={shift.opened_at} />
             </p>
             <p className="rounded-md border bg-card p-3 text-sm">
-                المطابقة الحالية: رصيد البداية + النقد المخصص للمبيعات بعد خصم
-                باقي العميل. البطاقة منفصلة. لا تشمل مرتجعات أو مصروفات أو سحبًا
-                وإيداعًا نقديًا؛ هذه العمليات لم تُنفّذ بعد.
+                المطابقة: رصيد البداية + المبيعات النقدية بعد خصم باقي العميل +
+                النقد من الخزنة − النقد إلى الخزنة. البطاقة منفصلة. لا تشمل
+                مرتجعات أو دفع مصروفات؛ هذه العمليات لم تُنفّذ بعد.
             </p>
             <div className="grid gap-4 md:grid-cols-2">
                 <Card>
@@ -66,6 +77,8 @@ export default function Shift({
                                     ['إجمالي المبيعات', summary.sales_total],
                                     ['مبيعات نقدية', summary.cash_sales],
                                     ['مبيعات بطاقة', summary.card_sales],
+                                    ['من الخزنة إلى الصندوق', summary.cash_in],
+                                    ['من الصندوق إلى الخزنة', summary.cash_out],
                                     ['النقد المتوقع', summary.expected_cash],
                                 ] as const
                             ).map(([label, amount]) => (
@@ -180,6 +193,91 @@ export default function Shift({
                     </Card>
                 )}
             </div>
+            {canTransfer && (
+                <CashTransferForm
+                    key={shift.id}
+                    shiftId={shift.id}
+                    closed={!!shift.closed_at}
+                />
+            )}
+            <Card>
+                <CardHeader>
+                    <CardTitle>تحويلات النقد للوردية</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    {transfers.data.length === 0 ? (
+                        <p className="text-muted-foreground">
+                            لا توجد تحويلات نقدية لهذه الوردية.
+                        </p>
+                    ) : (
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-start text-sm">
+                                <thead>
+                                    <tr className="border-b">
+                                        {[
+                                            'التحويل',
+                                            'الاتجاه',
+                                            'المبلغ',
+                                            'المرجع',
+                                            'سجّل بواسطة',
+                                            'الوقت',
+                                        ].map((label) => (
+                                            <th
+                                                key={label}
+                                                className="p-3 text-start"
+                                            >
+                                                {label}
+                                            </th>
+                                        ))}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {transfers.data.map((transfer) => (
+                                        <tr
+                                            key={transfer.id}
+                                            className="border-b"
+                                        >
+                                            <td className="p-3">
+                                                <Link
+                                                    href={transferShow([
+                                                        shift.id,
+                                                        transfer.id,
+                                                    ])}
+                                                    className="underline"
+                                                >
+                                                    فتح التحويل {transfer.id}
+                                                </Link>
+                                            </td>
+                                            <td className="p-3">
+                                                {transfer.direction === 'in'
+                                                    ? 'من الخزنة إلى الصندوق'
+                                                    : 'من الصندوق إلى الخزنة'}
+                                            </td>
+                                            <td className="p-3">
+                                                <Money
+                                                    amount={transfer.amount}
+                                                />
+                                            </td>
+                                            <td className="p-3">
+                                                {transfer.reference}
+                                            </td>
+                                            <td className="p-3">
+                                                {transfer.author.name}
+                                            </td>
+                                            <td className="p-3">
+                                                <DateTime
+                                                    value={transfer.recorded_at}
+                                                />
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                    <Pagination page={transfers} label="صفحات تحويلات النقد" />
+                </CardContent>
+            </Card>
             <Card>
                 <CardHeader>
                     <CardTitle>مبيعات الوردية</CardTitle>
