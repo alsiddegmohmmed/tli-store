@@ -1,8 +1,10 @@
-import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
+import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import FormField from '@/components/form-field';
 import Money from '@/components/money';
+import Pagination from '@/components/pagination';
+import type { Paginated } from '@/components/pagination';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { index, store } from '@/routes/products';
@@ -10,14 +12,7 @@ import type { Product, SharedProps } from '@/types/store';
 
 type Props = {
     search: string;
-    products: {
-        data: Product[];
-        current_page: number;
-        last_page: number;
-        total: number;
-        prev_page_url: string | null;
-        next_page_url: string | null;
-    };
+    products: Paginated<Product>;
 };
 export default function Products({ products, search }: Props) {
     const { auth } = usePage<SharedProps>().props;
@@ -181,28 +176,7 @@ export default function Products({ products, search }: Props) {
                                 : 'اطلب من المحاسب إضافة الأصناف.'}
                         </p>
                     )}
-                    <nav
-                        aria-label="صفحات الأصناف"
-                        className="flex items-center gap-3"
-                    >
-                        {products.prev_page_url && (
-                            <Button asChild variant="outline">
-                                <Link href={products.prev_page_url}>
-                                    السابق
-                                </Link>
-                            </Button>
-                        )}
-                        <span className="text-sm text-muted-foreground">
-                            صفحة {products.current_page} من {products.last_page}
-                        </span>
-                        {products.next_page_url && (
-                            <Button asChild variant="outline">
-                                <Link href={products.next_page_url}>
-                                    التالي
-                                </Link>
-                            </Button>
-                        )}
-                    </nav>
+                    <Pagination page={products} label="صفحات الأصناف" />
                 </CardContent>
             </Card>
         </>

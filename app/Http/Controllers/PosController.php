@@ -2,8 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Domain\Sales\InclusiveLineCalculator;
+use App\Domain\Sales\BasketCalculator;
+use App\Domain\Sales\PaymentCalculator;
+use App\Domain\Stock\StockAvailability;
+use App\Http\Requests\PaymentPreviewRequest;
 use App\Http\Requests\QuoteRequest;
+use App\Models\InventoryBalance;
 use App\Models\PosStation;
 use App\Models\Product;
 use Illuminate\Http\JsonResponse;
@@ -18,6 +22,7 @@ class PosController extends Controller
     {
         return Inertia::render('pos/index', [
             'stations' => PosStation::where('is_active', true)->orderBy('code')->get(['id', 'code', 'name']),
+            'canRecordSales' => app()->environment('local', 'testing'),
         ]);
     }
 
@@ -38,24 +43,25 @@ class PosController extends Controller
             ->where('name', 'like', '%'.$input['search'].'%')->orderBy('name')->limit(15)->get()]);
     }
 
-    public function quote(QuoteRequest $request, InclusiveLineCalculator $calculator): JsonResponse
+    public function quote(QuoteRequest $request, BasketCalculator $calculator): JsonResponse
     {
         $data = $request->validated();
         $products = Product::where('is_active', true)->whereIn('id', array_column($data['items'], 'product_id'))->get()->keyBy('id');
-        if ($products->count() !== count($data['items'])) {
-            throw ValidationException::withMessages(['items' => 'أحد الأصناف غير متاح. راجع السلة.']);
-        }
-        $totals = ['net' => '0.00', 'tax' => '0.00', 'total' => '0.00'];
-        $lines = [];
-        foreach ($data['items'] as $item) {
-            $product = $products[$item['product_id']];
-            $amounts = $calculator->calculate($product->price, $item['quantity'], $product->tax_rate);
-            $lines[] = ['product_id' => $product->id, 'quantity' => $item['quantity'], 'unit_price' => $product->price, ...$amounts];
-            foreach (array_keys($totals) as $key) {
-                $totals[$key] = bcadd($totals[$key], $amounts[$key], 2);
-            }
+
+        return response()->json($calculator->calculate($data['items'], $products));
+    }
+
+    public function paymentPreview(PaymentPreviewRequest $request, BasketCalculator $basket, PaymentCalculator $payments, StockAvailability $availability): JsonResponse
+    {
+        $data = $request->validated();
+        $products = Product::whereIn('id', array_column($data['items'], 'product_id'))->get()->keyBy('id');
+        $quote = $basket->calculate($data['items'], $products);
+        if (! hash_equals($quote['fingerprint'], $data['quote_fingerprint'])) {
+            throw ValidationException::withMessages(['items' => 'تغيرت بيانات السلة. أعد حساب الإجمالي وراجع الدفع.']);
         }
 
-        return response()->json(['lines' => $lines, 'totals' => $totals]);
+        $availability->assertAvailable($quote['lines'], InventoryBalance::whereIn('product_id', $products->keys())->get()->keyBy('product_id'));
+
+        return response()->json($payments->calculate($quote['totals']['total'], $data['cash_tender'], $data['card_amount']));
     }
 }

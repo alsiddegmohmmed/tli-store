@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react';
-import { requestJson } from '@/lib/request-json';
+import { useServerPreview } from '@/hooks/use-server-preview';
 import { quote as quoteRoute } from '@/routes/pos';
 import type { BasketLine, Quote } from '@/types/store';
 
@@ -11,50 +10,15 @@ export function useBasketQuote(stationId: string, basket: BasketLine[]) {
             quantity: line.quantity,
         })),
     });
-    const [result, setResult] = useState<{
-        payload: string;
-        quote?: Quote;
-        error?: string;
-    } | null>(null);
-    const [attempt, setAttempt] = useState(0);
-    useEffect(() => {
-        if (!stationId || basket.length === 0) return;
-        const controller = new AbortController();
-        const timer = window.setTimeout(() => {
-            void requestJson<Quote>(quoteRoute.url(), {
-                method: 'POST',
-                body: payload,
-                signal: controller.signal,
-            })
-                .then((quote) => {
-                    if (!controller.signal.aborted)
-                        setResult({ payload, quote });
-                })
-                .catch((error: unknown) => {
-                    if (!controller.signal.aborted)
-                        setResult({
-                            payload,
-                            error:
-                                error instanceof Error
-                                    ? error.message
-                                    : 'تعذر حساب الإجمالي.',
-                        });
-                });
-        }, 180);
-        return () => {
-            clearTimeout(timer);
-            controller.abort();
-        };
-    }, [payload, stationId, basket.length, attempt]);
-    const current =
-        basket.length > 0 && result?.payload === payload ? result : null;
+    const result = useServerPreview<Quote>(
+        quoteRoute.url(),
+        payload,
+        !!stationId && basket.length > 0,
+    );
     return {
-        quote: current?.quote,
-        error: current?.error,
-        pending: !!stationId && basket.length > 0 && !current,
-        retry: () => {
-            setResult(null);
-            setAttempt((value) => value + 1);
-        },
+        quote: result.data,
+        error: result.error,
+        pending: result.pending,
+        retry: result.retry,
     };
 }

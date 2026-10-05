@@ -1,6 +1,6 @@
 # Store POS and accounting MVP
 
-Updated: 5 October 2026. Status: agreed MVP scope with proposed business rules; no application implemented. This document owns product behavior and acceptance outcomes. Read [Engineering guide](engineering-guide.md) for implementation structure and [AGENTS.md](../AGENTS.md) for working instructions.
+Updated: 5 October 2026. Status: agreed MVP scope with proposed business rules. The foundation and a development-only sale/stock/payment journal slice exist; current implementation boundaries are in [README](../README.md). This document owns product behavior and acceptance outcomes. Read [Engineering guide](engineering-guide.md) for implementation structure and [AGENTS.md](../AGENTS.md) for working instructions.
 
 ## Agreed target
 
@@ -90,7 +90,7 @@ flowchart LR
 
 Online-only means no final sale confirmation without the server. If a response is lost after a successful save, the station must query/retry using the same operation ID and recover the existing invoice. Preserve the basket and show the state clearly. Do not ask the cashier to blindly repeat a card charge.
 
-Four devices require shared invoice identity, isolated cashier sessions and database concurrency control. A simultaneous last-unit sale must follow a deliberate stock policy; proposed default is reject a sale exceeding available stock, with any override restricted and logged. Confirm whether the store needs negative stock before enforcing that default.
+Four devices require shared invoice identity, isolated cashier sessions and database concurrency control. Confirmed on 5 October 2026: block a sale exceeding recorded available stock until stock is corrected. There is no cashier override. Four independent database connections competing for the last unit must commit only one sale.
 
 ## Documents and their effects
 
@@ -155,7 +155,7 @@ These records describe business relationships, not a fixed database schema or a 
 | Fiscal artifacts and processing attempts | Issued identity, immutable content, applicable status, failures and retry history |
 | Audit and import records | Who/when/reason, source system/reference, reconciliation decisions |
 
-Historical cost and price changes must not rewrite posted document values. Proposed starting inventory valuation is moving weighted average, subject to the accountant's approval and opening cost quality; Technolink's valuation method was not established.
+Historical cost and price changes must not rewrite posted document values. **Cost method remains undecided**, by the owner's decision on 5 October 2026. Do not implement moving weighted average or another valuation method until agreed. Current opening/sale movements track quantities only; opening costs remain unknown, with no inventory valuation, cost-of-goods-sold posting or profit report. Sale journals record applied cash/card clearing, sales revenue and output VAT only. Technolink's valuation method was not established.
 
 Separate a recorded sale, an issued invoice, any required clearance/reporting and a print attempt. Confirm the applicable issuance order before implementing; do not present pending or rejected fiscal processing as completed compliance. Retrying external processing must preserve the same business transaction.
 
@@ -195,9 +195,9 @@ Choose either migrated historical activity with reconciled balances or approved 
 | 5. Operational controls | Returns/credit notes, closing variance, stock count, reports | Over-return prevention, stock concurrency, report-to-document reconciliation |
 | 6. Release rehearsal | Real hardware pilot, fiscal validation, backup/restore, user training | Restored data reconciles; printer/fiscal/server failure cases recover; no unresolved release blockers |
 
-Online transactions, four cashiers and official invoices are mandatory launch constraints. Before release, validate duplicate requests, rollback on save failure, tax-inclusive/exclusive and rounding cases, split tender/change, linked refunds, fiscal retries, permissions and successful backup restoration. Use focused automated tests for high-impact logic and practical hardware/integration checks. This is release acceptance, not a demand to run the entire matrix for every change. Follow the proportional verification policy in [AGENTS.md](../AGENTS.md). The selected stack is documented in [Engineering guide](engineering-guide.md#selected-stack); actual test commands will be verified when the application exists. No application tests have run yet.
+Online transactions, four cashiers and official invoices are mandatory launch constraints. Before release, validate duplicate requests, rollback on save failure, tax-inclusive/exclusive and rounding cases, split tender/change, linked refunds, fiscal retries, permissions and successful backup restoration. Use focused automated tests for high-impact logic and practical hardware/integration checks. This is release acceptance, not a demand to run the entire matrix for every change. Follow the proportional verification policy in [AGENTS.md](../AGENTS.md). The selected stack is documented in [Engineering guide](engineering-guide.md#selected-stack); checked setup and verification commands are maintained in [README](../README.md#verification). Automated checks for the implemented slice do not establish release readiness.
 
-Remaining inputs: company Phase 2 notice/deadline and onboarding details; device model/OS/USB or network connections/paper width; payment-terminal process; selling units/weighed/expiry goods; opening balances and catalogue; whether credit/customer business invoices are needed. Resolve each input when its implementation depends on it. VAT registration and Arabic RTL are confirmed; do not repeatedly ask about them. Work unaffected by these inputs can continue once implementation is authorized.
+Remaining inputs: inventory cost method and verified opening costs; company Phase 2 notice/deadline and onboarding details; device model/OS/USB or network connections/paper width; payment-terminal process; selling units/weighed/expiry goods; opening balances and catalogue; whether credit/customer business invoices are needed. Resolve each input when its implementation depends on it. VAT registration and Arabic RTL are confirmed; do not repeatedly ask about them. Work unaffected by these inputs can continue once implementation is authorized.
 
 ## Review limits
 
