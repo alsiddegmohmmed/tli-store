@@ -1,38 +1,16 @@
 import { Head, Link } from '@inertiajs/react';
 import Money from '@/components/money';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { index } from '@/routes/sales';
-import type { SaleSummary } from '@/types/store';
+import { index, receipt } from '@/routes/sales';
+import { Button } from '@/components/ui/button';
+import type { SaleDetail } from '@/types/store';
 import DateTime from '@/components/date-time';
 
-type Sale = SaleSummary & {
-    net: string;
-    tax: string;
-    cash_tender: string;
-    change: string;
-    fiscal_status: string;
-    lines: {
-        id: number;
-        name: string;
-        barcode: string;
-        unit: string;
-        quantity: string;
-        unit_price: string;
-        total: string;
-    }[];
-    payments: {
-        id: number;
-        method: string;
-        amount: string;
-        reference: string | null;
-        manually_confirmed: boolean;
-    }[];
-};
 export default function SaleDetail({
     sale,
     journal,
 }: {
-    sale: Sale;
+    sale: SaleDetail;
     journal: { name: string; debit: string; credit: string }[];
 }) {
     return (
@@ -40,13 +18,18 @@ export default function SaleDetail({
             <Head title={`بيع ${sale.id}`} />
             <div className="flex flex-wrap items-center justify-between gap-3">
                 <h1 className="text-2xl font-bold">سجل البيع {sale.id}</h1>
-                <Link href={index()} className="underline">
-                    العودة للمبيعات
-                </Link>
+                <div className="flex items-center gap-3">
+                    <Button asChild variant="outline">
+                        <Link href={receipt(sale.id)}>عرض الإيصال التجريبي</Link>
+                    </Button>
+                    <Link href={index()} className="underline">
+                        العودة للمبيعات
+                    </Link>
+                </div>
             </div>
             <p className="rounded-md border bg-card p-3 text-sm">
-                هذا سجل داخلي؛ لم تصدر فاتورة رسمية ولم تُنفذ طباعة. التكلفة
-                والربح غير محسوبين.
+                هذا سجل داخلي؛ لم تصدر فاتورة رسمية. إيصال التجربة لا يحل محلها.
+                التكلفة والربح غير محسوبين.
             </p>
             <p className="text-sm text-muted-foreground">
                 <DateTime value={sale.recorded_at} /> — {sale.cashier.name} —{' '}

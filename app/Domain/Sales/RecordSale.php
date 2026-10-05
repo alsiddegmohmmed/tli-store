@@ -4,6 +4,7 @@ namespace App\Domain\Sales;
 
 use App\Domain\Accounting\JournalPoster;
 use App\Domain\Stock\StockAvailability;
+use App\Models\CompanyProfile;
 use App\Models\InventoryBalance;
 use App\Models\PosStation;
 use App\Models\Product;
@@ -53,7 +54,8 @@ class RecordSale
                 $this->availability->assertAvailable($quote['lines'], $balances);
                 $sale = Sale::create(['operation_id' => $data['operation_id'], 'request_hash' => $hash,
                     'cashier_id' => $user->id, 'station_id' => $station->id, ...$quote['totals'],
-                    'cash_tender' => $payment['cash_tender'], 'change' => $payment['change'], 'recorded_at' => now()]);
+                    'cash_tender' => $payment['cash_tender'], 'change' => $payment['change'], 'recorded_at' => now(),
+                    'seller_snapshot' => CompanyProfile::find(1)?->sellerSnapshot()]);
                 foreach ($quote['lines'] as $line) {
                     $saleLine = $sale->lines()->create($line);
                     $balance = $balances->get($line['product_id']);

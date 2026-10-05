@@ -17,6 +17,7 @@ export type SharedProps = {
             role: 'owner' | 'accountant' | 'cashier';
         };
         canManageProducts: boolean;
+        canManageCompany: boolean;
     };
     flash: { success?: string };
     [key: string]: unknown;
@@ -65,4 +66,46 @@ export type SaleSummary = {
     recorded_at: string;
     cashier: { name: string };
     station: { name: string };
+};
+
+export type CompanyProfile = {
+    legal_name: string;
+    vat_number: string;
+    commercial_registration: string;
+    street: string;
+    building_number: string;
+    district: string;
+    city: string;
+    postal_code: string;
+};
+export type SellerSnapshot = CompanyProfile & {
+    country_code: string;
+    profile_updated_at: string;
+};
+export type SaleDetail = SaleSummary & {
+    net: string;
+    tax: string;
+    cash_tender: string;
+    change: string;
+    fiscal_status: string;
+    seller_snapshot: SellerSnapshot | null;
+    lines: {
+        id: number;
+        name: string;
+        barcode: string;
+        unit: string;
+        quantity: string;
+        unit_price: string;
+        tax_rate: string;
+        net: string;
+        tax: string;
+        total: string;
+    }[];
+    payments: {
+        id: number;
+        method: string;
+        amount: string;
+        reference: string | null;
+        manually_confirmed: boolean;
+    }[];
 };

@@ -52,3 +52,46 @@
         @apply focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring;
     }
 }
+
+:root {
+    --receipt-paper-58: 58mm;
+    --receipt-paper-80: 80mm;
+    --receipt-paper-margin: 3mm;
+    --receipt-font-size: 10pt;
+}
+.receipt-paper-58 {
+    --receipt-paper-width: var(--receipt-paper-58);
+}
+.receipt-paper-80 {
+    --receipt-paper-width: var(--receipt-paper-80);
+}
+.sale-receipt {
+    width: calc(
+        var(--receipt-paper-width) - var(--receipt-paper-margin) -
+            var(--receipt-paper-margin)
+    );
+    max-width: 100%;
+    margin-inline: auto;
+    font-size: var(--receipt-font-size);
+    overflow-wrap: anywhere;
+}
+@media print {
+    @page {
+        margin: 3mm;
+    }
+    body {
+        background: var(--card);
+        color: var(--foreground);
+    }
+    .receipt-page {
+        padding: 0;
+    }
+    .sale-receipt {
+        padding: 0;
+        margin: 0;
+    }
+    .sale-receipt tr,
+    .sale-receipt footer {
+        break-inside: avoid;
+    }
+}

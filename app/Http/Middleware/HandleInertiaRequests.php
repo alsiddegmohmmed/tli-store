@@ -16,6 +16,7 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user()?->only(['id', 'name', 'email', 'role']),
                 'canManageProducts' => $request->user()?->can('manage-products') ?? false,
+                'canManageCompany' => $request->user()?->can('manage-company') ?? false,
             ],
             'flash' => ['success' => fn () => $request->session()->get('success')],
         ];
