@@ -21,6 +21,14 @@ Build a practical Arabic RTL POS and accounting platform for this store. Favor c
 
 Keep progress and final replies concise. Use focused searches and bounded file reads. Do not reread the full repository, repeat successful checks, create redundant planning documents or use multiple agents unless requested.
 
+## Git checkpoints and autonomous continuation
+
+The owner authorized direct work in the existing `main` checkout on 5 October 2026. Do not create branches, worktrees or pull requests for routine slices. Treat each complete feature as a checkpoint: review the change, run the relevant checks, update affected existing documentation, commit and push `main`, then continue to the next useful slice without waiting for approval. Fetch and preserve remote changes; never force-push or discard unrelated work.
+
+Before implementing a related workflow, consult Technolink and the temporary accounting spreadsheet through the source links in [MVP workflows](docs/store-mvp-workflows.md#what-the-current-work-actually-involves). Keep both sources read-only. Use existing reference evidence when access is unavailable, mark any remaining uncertainty and continue independent work. Do not repeatedly inspect unrelated screens or copy private source records into the repository.
+
+Autonomous continuation does not resolve the undecided costing method, fiscal onboarding, unknown opening balances or hardware details. Do not invent those inputs, enable production checkout or deploy externally. Complete work supported by the agreed requirements and report concrete blockers with the next checkpoint summary.
+
 ## Reuse and module boundaries
 
 - Reuse existing components and extend their small, explicit APIs before creating alternatives. Shared buttons, fields, dialogs, money displays and status patterns use the same theme tokens.

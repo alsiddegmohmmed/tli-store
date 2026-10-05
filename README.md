@@ -20,7 +20,7 @@ Read the relevant section instead of loading every document for every task. Keep
 
 ## Working approach
 
-Use one modular application and a relational database. Deliver small complete workflows. Share real business rules and reusable UI components; add infrastructure and abstractions only when a present need justifies them.
+Use one modular application and a relational database. Deliver small complete workflows. Share real business rules and reusable UI components; add infrastructure and abstractions only when a present need justifies them. The owner authorized direct work on `main`: tested, reviewed commits are checkpoints, followed by a push and continuation to the next slice. The detailed continuation rules are in [AGENTS.md](AGENTS.md#git-checkpoints-and-autonomous-continuation).
 
 Write the product in Arabic directly. Prioritize clear workflows and reliable transactions. A small theme-token layer and shared components will make later visual changes easier without delaying the functional foundation.
 
