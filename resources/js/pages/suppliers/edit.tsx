@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import SupplierForm from '@/features/suppliers/supplier-form';
 import { index } from '@/routes/suppliers';
 import type { Supplier } from '@/types/store';
+import { create as createBill, index as billsIndex } from '@/routes/purchases';
 
 export default function EditSupplier({ supplier }: { supplier: Supplier }) {
     return (
@@ -18,6 +19,19 @@ export default function EditSupplier({ supplier }: { supplier: Supplier }) {
                 تعطيل المورد يحفظ سجله. تسجيل أو تعديل بياناته لا ينشئ فاتورة أو
                 دفعة أو رصيدًا افتتاحيًا.
             </p>
+            <div className="flex flex-wrap gap-4">
+                <Link
+                    href={billsIndex({ query: { supplier_id: supplier.id } })}
+                    className="underline"
+                >
+                    فواتير المورد
+                </Link>
+                {supplier.is_active && (
+                    <Link href={createBill(supplier.id)} className="underline">
+                        تسجيل فاتورة غير مدفوعة
+                    </Link>
+                )}
+            </div>
             <Card>
                 <CardHeader>
                     <CardTitle>بيانات المورد</CardTitle>

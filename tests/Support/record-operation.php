@@ -1,5 +1,6 @@
 <?php
 
+use App\Domain\Purchasing\RecordPurchaseBill;
 use App\Domain\Sales\RecordSale;
 use App\Domain\Shifts\CloseShift;
 use App\Domain\Shifts\OpenShift;
@@ -30,6 +31,7 @@ try {
     $user = User::findOrFail($input['user_id']);
     $result = match ($input['action'] ?? 'sale') {
         'stock_count' => app(RecordStockCount::class)->execute($user, $input['data']),
+        'purchase_bill' => app(RecordPurchaseBill::class)->execute($user, $input['data']),
         'sale' => app(RecordSale::class)->execute($user, $input['data']),
         'open_shift' => app(OpenShift::class)->execute($user, $input['data']),
         'cash_transfer' => app(RecordCashTransfer::class)->execute($user, $input['shift_id'], $input['data']),

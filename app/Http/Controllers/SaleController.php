@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\Accounting\ReadDocumentJournal;
 use App\Domain\Sales\RecordSale;
 use App\Http\Requests\StoreSaleRequest;
 use App\Models\Sale;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -30,15 +30,11 @@ class SaleController extends Controller
         return Inertia::render('sales/index', ['sales' => $sales]);
     }
 
-    public function show(Request $request, Sale $sale): Response
+    public function show(Request $request, Sale $sale, ReadDocumentJournal $journals): Response
     {
         Gate::authorize('view', $sale);
         $sale->load(['cashier:id,name', 'station:id,name', 'lines', 'payments']);
-        $journal = $request->user()->can('manage-products') ? DB::table('journal_lines')
-            ->join('journal_entries', 'journal_lines.journal_entry_id', '=', 'journal_entries.id')
-            ->join('ledger_accounts', 'journal_lines.account_code', '=', 'ledger_accounts.code')
-            ->where('journal_entries.sale_id', $sale->id)->orderBy('journal_lines.id')
-            ->get(['ledger_accounts.name', 'journal_lines.debit', 'journal_lines.credit']) : [];
+        $journal = $request->user()->can('manage-products') ? $journals->execute(['sale_id' => $sale->id]) : [];
 
         return Inertia::render('sales/show', ['sale' => $sale, 'journal' => $journal]);
     }

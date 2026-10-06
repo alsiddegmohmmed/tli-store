@@ -4,6 +4,7 @@ use App\Http\Controllers\CashierShiftController;
 use App\Http\Controllers\CompanyProfileController;
 use App\Http\Controllers\PosController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\PurchaseBillController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\SaleReceiptController;
 use App\Http\Controllers\ShiftCashTransferController;
@@ -20,6 +21,10 @@ Route::middleware('auth')->group(function (): void {
         Route::post('/suppliers', [SupplierController::class, 'store'])->name('suppliers.store');
         Route::get('/suppliers/{supplier}/edit', [SupplierController::class, 'edit'])->name('suppliers.edit');
         Route::put('/suppliers/{supplier}', [SupplierController::class, 'update'])->name('suppliers.update');
+        Route::get('/suppliers/{supplier}/purchase-bill', [PurchaseBillController::class, 'create'])->name('purchases.create');
+        Route::get('/purchases', [PurchaseBillController::class, 'index'])->name('purchases.index');
+        Route::post('/purchases', [PurchaseBillController::class, 'store'])->name('purchases.store');
+        Route::get('/purchases/{bill}', [PurchaseBillController::class, 'show'])->name('purchases.show');
     });
     Route::get('/shifts', [CashierShiftController::class, 'index'])->name('shifts.index');
     Route::post('/shifts', [CashierShiftController::class, 'store'])->name('shifts.store');

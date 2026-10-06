@@ -4,6 +4,8 @@ Reviewed: 2026-10-05 (Asia/Riyadh)
 
 Status: reference discovery evidence. Current implementation status is maintained in [README](../README.md).
 
+Access update, 2026-10-06 (Asia/Riyadh): the purchase form returned the Technolink login screen. No new purchase behavior was verified in that attempt; development continues from the observations below and read-only spreadsheet evidence.
+
 This document records what was visible in Technolink on the review date. Product scope belongs in [MVP workflows](store-mvp-workflows.md); implementation guidance belongs in [Engineering guide](engineering-guide.md). Features listed here are evidence, not a requirement to copy every feature.
 
 ## Evidence and limits

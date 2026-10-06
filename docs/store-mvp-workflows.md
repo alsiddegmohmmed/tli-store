@@ -121,7 +121,17 @@ For expenses, retain the spreadsheet's internal ID, external document reference,
 
 Implemented: owner/accountant can create, search, edit and deactivate suppliers; cashiers cannot access the register. A supplier requires a name. Tax number, commercial registration, phone, city and notes are optional, following the spreadsheet's supplier fields. Unknown details remain null; a missing tax number does not establish that a supplier is unregistered. Contact fields do not verify tax eligibility.
 
-Each supplier has a stable internal ID and recorded creator/last editor. Editing or deactivating preserves that identity; there is no delete action. Contact maintenance creates no purchase bill, payment, stock movement, journal or opening balance. Supplier document/payment totals will derive from linked transactions when those workflows exist, rather than editable contact totals. Future document posting must retain supplier snapshots so contact edits cannot rewrite issued records.
+Each supplier has a stable internal ID and recorded creator/last editor. Editing or deactivating preserves that identity; there is no delete action. Contact maintenance creates no purchase bill, payment, stock movement, journal or opening balance. Supplier document/payment totals derive from linked transactions as those workflows are added, rather than editable contact totals. Bill registration retains supplier snapshots so contact edits cannot rewrite saved documents.
+
+## Supplier bill registration
+
+Implemented first purchase checkpoint: owner/accountant can register a wholly unpaid supplier bill using its external document reference, date, description, positive printed gross total and optional printed tax. This is document-header registration; goods lines, stock receipt, payments, attachments and final classification are later slices. Staff must verify the bill has not been paid or already included in another record/opening balance. Paid or partially paid historical spending needs reconciliation, rather than entering its whole gross amount as new debt.
+
+The server validates cent precision, positive total, tax between zero and total and a date no later than today. Unknown printed tax remains null; verified zero stays zero. Neither supplier registration nor entered printed tax establishes input-tax eligibility. Bill amounts come from the supplier document, not the retail catalogue or a guessed tax rate.
+
+The bill, supplier snapshot and balanced journal commit atomically: debit the temporary **مشتريات بانتظار التصنيف** account for gross and credit **ذمم الموردين** for gross. The temporary account holds amounts for review; it does not establish inventory value, operating expense, an asset's final classification or deductible VAT. Reclassification needs its own linked reviewed posting when those rules exist. Registering a bill creates no stock movement or payment. A later receipt/payment must link the original bill and avoid recording the purchase again. The list is a register of new known bills, not a verified historical supplier balance.
+
+An operation UUID recovers the exact saved attempt, including after supplier deactivation. Changed data or another actor with the same UUID is rejected. New bills require an active supplier. A supplier's document reference can be recorded once, compared without case or surrounding spaces; duplicate attempts are rejected under a supplier lock and database uniqueness constraint. If a supplier reuses an external reference, review its identity before registration rather than inventing a new number to bypass the check. Saved bills have no edit/delete action; linked financial corrections remain future work. Contact changes affect future snapshots only.
 
 ## Employee advances: avoid double counting
 
