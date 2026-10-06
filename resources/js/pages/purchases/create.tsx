@@ -1,6 +1,7 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import FormField from '@/components/form-field';
+import RecordedSubmissionFeedback from '@/components/recorded-submission-feedback';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -62,9 +63,9 @@ export default function CreatePurchaseBill({
                 فواتير هذا المورد
             </Link>
             <p className="text-sm text-muted-foreground">
-                سجل فاتورة غير مدفوعة من مستند المورد. الاستلام المخزني والدفع
-                منفصلان ولم يُفعّلا بعد. المبلغ يبقى بانتظار التصنيف المحاسبي؛ لا
-                تُحسب تكلفة المخزون أو ضريبة قابلة للاسترداد.
+                سجل فاتورة غير مدفوعة من مستند المورد. السداد يسجل لاحقًا على
+                الفاتورة. الاستلام المخزني لم يُفعّل بعد. المبلغ يبقى بانتظار
+                التصنيف المحاسبي؛ لا تُحسب تكلفة المخزون أو ضريبة قابلة للاسترداد.
             </p>
             {!supplier.is_active && (
                 <p role="alert" className="text-destructive">
@@ -72,34 +73,19 @@ export default function CreatePurchaseBill({
                     فاتورة جديدة.
                 </p>
             )}
-            {recording.error && (
-                <p role="alert" className="text-destructive">
-                    {recording.error}
-                </p>
-            )}
-            {recording.pending && (
-                <Card>
-                    <CardContent className="space-y-3 pt-6">
-                        <p role="status">
-                            {recording.saving
-                                ? 'جارٍ حفظ الفاتورة…'
-                                : 'نتيجة الحفظ تحتاج استعادة نفس المحاولة. لا تنشئ فاتورة ثانية.'}
-                        </p>
-                        <p>
-                            مرجع المستند:{' '}
-                            <bdi dir="ltr">
-                                {recording.pending.input.reference}
-                            </bdi>
-                        </p>
-                        <Button
-                            disabled={recording.saving}
-                            onClick={() => void recording.retry()}
-                        >
-                            استعادة نفس المحاولة
-                        </Button>
-                    </CardContent>
-                </Card>
-            )}
+            <RecordedSubmissionFeedback
+                error={recording.error}
+                pending={!!recording.pending}
+                saving={recording.saving}
+                retry={() => void recording.retry()}
+            >
+                {recording.pending && (
+                    <p>
+                        مرجع المستند:{' '}
+                        <bdi dir="ltr">{recording.pending.input.reference}</bdi>
+                    </p>
+                )}
+            </RecordedSubmissionFeedback>
             <Card>
                 <CardHeader>
                     <CardTitle>بيانات مستند المورد</CardTitle>

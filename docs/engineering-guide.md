@@ -65,6 +65,8 @@ Keep ZATCA processing behind a focused Laravel integration boundary using the ap
 - `CompanyProfile` stores the single store's validated seller identity/address; only the owner manages it. `RecordSale` captures a JSON seller snapshot at posting. Missing historical seller details remain null. `SalePolicy` owns record/receipt read authorization. The receipt route only reads existing snapshots and uses the shared `SaleReceipt`, `Money` and `DateTime` components; screen controls are hidden for print. Physical paper widths are named CSS tokens, not a printer SDK or a compliance claim.
 - The database-backed queue is configured but no fiscal jobs are implemented. Development Compose does not run a production server, queue worker or scheduler.
 
+- `RecordSupplierPayment` serializes allocations on their original bill and uses `BillBalance` for the shared paid/remainder arithmetic. Bill lists use a SQL aggregate rather than one payment query per row. Payments and their journals commit together; the recorded source/payer fields follow [Linked supplier payments](store-mvp-workflows.md#linked-supplier-payments). Bill creation and payment recording reuse `RecordedSubmissionFeedback` alongside the persisted submission hook. Saved payment reads reuse `ReadDocumentJournal` and `JournalTable`.
+
 Continue implementing only the boundaries needed by the next complete workflow.
 
 ## Build a base that can grow

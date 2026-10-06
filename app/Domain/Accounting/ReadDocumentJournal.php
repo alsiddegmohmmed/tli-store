@@ -10,7 +10,7 @@ class ReadDocumentJournal
     /**
      * Caller authorizes access to the source document and its financial journal.
      *
-     * @param  array{sale_id: int}|array{shift_cash_transfer_id: int}|array{purchase_bill_id: int}  $source
+     * @param  array{sale_id: int}|array{shift_cash_transfer_id: int}|array{purchase_bill_id: int}|array{supplier_payment_id: int}  $source
      * @return Collection<int, \stdClass>
      */
     public function execute(array $source): Collection

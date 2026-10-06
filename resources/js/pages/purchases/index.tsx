@@ -3,7 +3,7 @@ import Money from '@/components/money';
 import Pagination from '@/components/pagination';
 import type { Paginated } from '@/components/pagination';
 import { Card, CardContent } from '@/components/ui/card';
-import type { PurchaseBill } from '@/features/purchases/types';
+import type { PurchaseBill, BillBalance } from '@/features/purchases/types';
 import { create, index, show } from '@/routes/purchases';
 import { index as suppliersIndex } from '@/routes/suppliers';
 import type { Supplier } from '@/types/store';
@@ -12,7 +12,7 @@ export default function Purchases({
     bills,
     supplier,
 }: {
-    bills: Paginated<PurchaseBill>;
+    bills: Paginated<PurchaseBill & { balance: BillBalance }>;
     supplier: Supplier | null;
 }) {
     return (
@@ -54,6 +54,8 @@ export default function Purchases({
                                         'التاريخ',
                                         'الإجمالي',
                                         'الضريبة المسجلة',
+                                        'المدفوع',
+                                        'المتبقي',
                                     ].map((label) => (
                                         <th
                                             key={label}
@@ -99,6 +101,14 @@ export default function Purchases({
                                                     amount={bill.printed_tax}
                                                 />
                                             )}
+                                        </td>
+                                        <td className="p-3">
+                                            <Money amount={bill.balance.paid} />
+                                        </td>
+                                        <td className="p-3">
+                                            <Money
+                                                amount={bill.balance.remaining}
+                                            />
                                         </td>
                                     </tr>
                                 ))}

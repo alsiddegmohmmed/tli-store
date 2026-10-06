@@ -11,6 +11,7 @@ use App\Http\Controllers\ShiftCashTransferController;
 use App\Http\Controllers\StockController;
 use App\Http\Controllers\StockCountController;
 use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\SupplierPaymentController;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/pos')->name('home');
@@ -25,6 +26,8 @@ Route::middleware('auth')->group(function (): void {
         Route::get('/purchases', [PurchaseBillController::class, 'index'])->name('purchases.index');
         Route::post('/purchases', [PurchaseBillController::class, 'store'])->name('purchases.store');
         Route::get('/purchases/{bill}', [PurchaseBillController::class, 'show'])->name('purchases.show');
+        Route::post('/purchases/{bill}/payments', [SupplierPaymentController::class, 'store'])->name('purchases.payments.store');
+        Route::get('/purchases/{bill}/payments/{payment}', [SupplierPaymentController::class, 'show'])->name('purchases.payments.show');
     });
     Route::get('/shifts', [CashierShiftController::class, 'index'])->name('shifts.index');
     Route::post('/shifts', [CashierShiftController::class, 'store'])->name('shifts.store');

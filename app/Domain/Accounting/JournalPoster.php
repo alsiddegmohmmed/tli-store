@@ -9,7 +9,7 @@ class JournalPoster
     /**
      * Caller owns the surrounding business transaction.
      *
-     * @param  array{sale_id: int}|array{shift_cash_transfer_id: int}|array{purchase_bill_id: int}  $source
+     * @param  array{sale_id: int}|array{shift_cash_transfer_id: int}|array{purchase_bill_id: int}|array{supplier_payment_id: int}  $source
      * @param  list<array{account_code: string, debit?: numeric-string, credit?: numeric-string}>  $lines
      */
     public function post(array $source, int $userId, string $date, string $description, array $lines): int
