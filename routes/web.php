@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\CashierShiftController;
 use App\Http\Controllers\CompanyProfileController;
+use App\Http\Controllers\DocumentEvidenceController;
 use App\Http\Controllers\PosController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PurchaseBillController;
@@ -28,6 +29,9 @@ Route::middleware('auth')->group(function (): void {
         Route::get('/purchases/{bill}', [PurchaseBillController::class, 'show'])->name('purchases.show');
         Route::post('/purchases/{bill}/payments', [SupplierPaymentController::class, 'store'])->name('purchases.payments.store');
         Route::get('/purchases/{bill}/payments/{payment}', [SupplierPaymentController::class, 'show'])->name('purchases.payments.show');
+        Route::post('/purchases/{bill}/evidence', [DocumentEvidenceController::class, 'bill'])->name('purchases.evidence');
+        Route::post('/purchases/{bill}/payments/{payment}/evidence', [DocumentEvidenceController::class, 'payment'])->name('purchases.payments.evidence');
+        Route::get('/evidence/{evidence}/download', [DocumentEvidenceController::class, 'download'])->name('evidence.download');
     });
     Route::get('/shifts', [CashierShiftController::class, 'index'])->name('shifts.index');
     Route::post('/shifts', [CashierShiftController::class, 'store'])->name('shifts.store');

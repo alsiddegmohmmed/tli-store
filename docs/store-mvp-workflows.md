@@ -125,7 +125,7 @@ Each supplier has a stable internal ID and recorded creator/last editor. Editing
 
 ## Supplier bill registration
 
-Implemented first purchase checkpoint: owner/accountant can register a wholly unpaid supplier bill using its external document reference, date, description, positive printed gross total and optional printed tax. This is document-header registration; goods lines, stock receipt, attachments and final classification are later slices. Subsequent payments use the linked workflow below. Staff must verify the bill has not been paid or already included in another record/opening balance. Paid or partially paid historical spending needs reconciliation, rather than entering its whole gross amount as new debt.
+Implemented first purchase checkpoint: owner/accountant can register a wholly unpaid supplier bill using its external document reference, date, description, positive printed gross total and optional printed tax. This is document-header registration; goods lines, stock receipt and final classification are later slices. Subsequent payments and [private evidence](#document-evidence) use linked workflows. Staff must verify the bill has not been paid or already included in another record/opening balance. Paid or partially paid historical spending needs reconciliation, rather than entering its whole gross amount as new debt.
 
 The server validates cent precision, positive total, tax between zero and total and a date no later than today. Unknown printed tax remains null; verified zero stays zero. Neither supplier registration nor entered printed tax establishes input-tax eligibility. Bill amounts come from the supplier document, not the retail catalogue or a guessed tax rate.
 
@@ -142,6 +142,14 @@ The server locks the bill, calculates paid and remaining amounts from linked pay
 The same operation UUID recovers the original payment, including after the bill is fully paid. Changed payloads, another actor or another bill with that UUID are rejected. A proof reference is unique per bill/payment method, compared without case or surrounding spaces. Saved payments are read-only; linked correction/refund workflows remain unfinished. Bill pages and lists derive their paid/remainder figures on the server, rather than editable totals; concurrent allocations cannot overpay the same bill.
 
 Cash-reserve and bank opening balances remain unverified. The bank ledger aggregates recorded company bank movements; each payment retains its funding-source reference. Do not present these movements as verified available cash, a bank statement or a reconciled historical balance. Recording an already completed payment does not authorize another transfer. Actual bank/source identities, opening balances and practical reconciliation still need verification before operational accounting.
+
+## Document evidence
+
+Implemented for supplier bills and their separately recorded payments: owner/accountant can add and download private PDF, JPEG or PNG files up to 2 MiB each. The server checks actual MIME type and size. Bills offer invoice, non-tax document and other evidence types; payments offer bank proof, cash voucher and other. Choosing a label does not verify the contents or input-tax eligibility. Attaching evidence changes no document amount, payment, journal or stock quantity.
+
+Each attachment preserves its original name, source record, recorder, timestamp and optional paper location. Unknown paper location stays null. Files are retained without edit/delete actions. Uploading identical bytes again to the same source returns the original attachment and metadata; attaching them to another source remains a separate link. Download requires the owner/accountant permission, and storage paths are not exposed. Missing bytes produce an unavailable-file response, retaining the metadata for recovery.
+
+Private files and database metadata need coordinated backup and restoration. File storage is not part of the database transaction: a known failed insert removes its file; an uncertain commit keeps private bytes until its outcome can be established. This prevents deleting a successfully recorded attachment after a lost response. Restoring these files and completing a missing-evidence review queue remain operational work.
 
 ## Employee advances: avoid double counting
 

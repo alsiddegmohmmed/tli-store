@@ -5,7 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import JournalTable from '@/features/accounting/journal-table';
 import type { JournalLine } from '@/features/accounting/journal-table';
 import type { PurchaseBill } from '@/features/purchases/types';
-import { index } from '@/routes/purchases';
+import { index, evidence as uploadEvidence } from '@/routes/purchases';
+import EvidencePanel from '@/features/evidence/evidence-panel';
+import type { Evidence } from '@/features/evidence/evidence-panel';
 import { show as paymentShow } from '@/routes/purchases/payments';
 import Pagination from '@/components/pagination';
 import type { Paginated } from '@/components/pagination';
@@ -18,12 +20,16 @@ export default function ShowPurchaseBill({
     balance,
     payments,
     today,
+    evidence,
+    evidenceKinds,
 }: {
     bill: PurchaseBill;
     journal: JournalLine[];
     balance: BillBalance;
     payments: Paginated<SupplierPayment>;
     today: string;
+    evidence: Paginated<Evidence>;
+    evidenceKinds: Record<string, string>;
 }) {
     return (
         <>
@@ -109,6 +115,11 @@ export default function ShowPurchaseBill({
                 </CardContent>
             </Card>
             <JournalTable lines={journal} />
+            <EvidencePanel
+                files={evidence}
+                kinds={evidenceKinds}
+                uploadUrl={uploadEvidence.url(bill.id)}
+            />
             <div id="supplier-payment" className="scroll-mt-4">
                 <SupplierPaymentForm
                     key={bill.id}

@@ -66,6 +66,7 @@ Keep ZATCA processing behind a focused Laravel integration boundary using the ap
 - The database-backed queue is configured but no fiscal jobs are implemented. Development Compose does not run a production server, queue worker or scheduler.
 
 - `RecordSupplierPayment` serializes allocations on their original bill and uses `BillBalance` for the shared paid/remainder arithmetic. Bill lists use a SQL aggregate rather than one payment query per row. Payments and their journals commit together; the recorded source/payer fields follow [Linked supplier payments](store-mvp-workflows.md#linked-supplier-payments). Bill creation and payment recording reuse `RecordedSubmissionFeedback` alongside the persisted submission hook. Saved payment reads reuse `ReadDocumentJournal` and `JournalTable`.
+- `app/Domain/Evidence/RecordEvidence` owns source-specific evidence kinds, content limits, private storage and same-source content deduplication. It locks the source record and uses partial unique indexes for concurrent retries. `DocumentEvidenceController` authorizes downloads through `manage-purchases`; shared `EvidencePanel` handles uploads/history on bills and payments. [Document evidence](store-mvp-workflows.md#document-evidence) defines retention and recovery limits. Development bytes live on Laravel's private local disk; production needs persistent private storage and coordinated database/file backups.
 
 Continue implementing only the boundaries needed by the next complete workflow.
 

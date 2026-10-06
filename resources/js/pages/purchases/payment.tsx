@@ -6,15 +6,23 @@ import JournalTable from '@/features/accounting/journal-table';
 import type { JournalLine } from '@/features/accounting/journal-table';
 import type { PurchaseBill, SupplierPayment } from '@/features/purchases/types';
 import { show } from '@/routes/purchases';
+import { evidence as uploadEvidence } from '@/routes/purchases/payments';
+import EvidencePanel from '@/features/evidence/evidence-panel';
+import type { Evidence } from '@/features/evidence/evidence-panel';
+import type { Paginated } from '@/components/pagination';
 
 export default function Payment({
     bill,
     payment,
     journal,
+    evidence,
+    evidenceKinds,
 }: {
     bill: PurchaseBill;
     payment: SupplierPayment;
     journal: JournalLine[];
+    evidence: Paginated<Evidence>;
+    evidenceKinds: Record<string, string>;
 }) {
     return (
         <>
@@ -85,6 +93,11 @@ export default function Payment({
                 </CardContent>
             </Card>
             <JournalTable lines={journal} />
+            <EvidencePanel
+                files={evidence}
+                kinds={evidenceKinds}
+                uploadUrl={uploadEvidence.url([bill.id, payment.id])}
+            />
         </>
     );
 }

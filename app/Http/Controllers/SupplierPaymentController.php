@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Domain\Accounting\ReadDocumentJournal;
+use App\Domain\Evidence\RecordEvidence;
 use App\Domain\Purchasing\RecordSupplierPayment;
 use App\Http\Requests\SupplierPaymentRequest;
+use App\Models\DocumentEvidence;
 use App\Models\PurchaseBill;
 use App\Models\SupplierPayment;
 use Illuminate\Http\JsonResponse;
@@ -25,6 +27,8 @@ class SupplierPaymentController extends Controller
         abort_unless($payment->purchase_bill_id === $bill->id, 404);
 
         return Inertia::render('purchases/payment', ['bill' => $bill, 'payment' => $payment->load('author:id,name'),
-            'journal' => $journals->execute(['supplier_payment_id' => $payment->id])]);
+            'journal' => $journals->execute(['supplier_payment_id' => $payment->id]),
+            'evidence' => DocumentEvidence::where(RecordEvidence::source($payment))->with('author:id,name')->orderByDesc('id')->paginate(10)->withQueryString(),
+            'evidenceKinds' => RecordEvidence::kinds($payment)]);
     }
 }
